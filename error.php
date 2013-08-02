@@ -25,7 +25,7 @@ App::error(function(Exception $exception, $code)
 	}
 
 	// if debug is false and mail.developer is set, send the mail
-	if (Config::get('debug') == false && Config::has('mail.developer')) {
+	if (Config::get('app.debug') === false && Config::has('mail.developer')) {
 		Config::set('mail.pretend', false);
 
 		$mailData = array(
