@@ -10,6 +10,11 @@
 }
 body {
 	background: #f4ede7;
+	-webkit-font-smoothing: antialiased;
+	-moz-font-smoothing: antialiased;
+	-ms-font-smoothing: antialiased;
+	-o-font-smoothing: antialiased;
+	font-smoothing: antialiased;
 }
 h1 {
 	text-align: center;
