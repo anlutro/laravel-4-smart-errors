@@ -7,6 +7,16 @@
  * @package   Laravel 4 Smart Errors
  */
 
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Response;
+
 // generic error handler
 App::error(function(Exception $exception, $code)
 {
