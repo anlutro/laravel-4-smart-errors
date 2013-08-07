@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Response;
 
-// generic error handler
+/**
+ * Handler for any uncaught exceptions in the application.
+ */
 App::error(function(Exception $exception, $code)
 {
 	// get the request URL
@@ -44,6 +46,7 @@ App::error(function(Exception $exception, $code)
 
 	// if debug is false and mail.developer is set, send the mail
 	if (Config::get('app.debug') === false && Config::has('mail.developer')) {
+		// I sometimes set pretend to true in staging, but would still like an email
 		Config::set('mail.pretend', false);
 
 		$mailData = array(
@@ -57,14 +60,19 @@ App::error(function(Exception $exception, $code)
 			$msg->to(Config::get('mail.developer'))
 				->subject('Error report');
 		});
+	}
 
+	// if debug is false, show the friendly error message
+	if (Config::get('app.debug') === false) {
 		return View::make('errors.generic');
 	}
 
-	// if debug is true, the default exception whoops page is shown
+	// if debug is true, do nothing and the default exception whoops page is shown
 });
 
-// 404 handler
+/**
+ * Handler for any 404 event triggered by the application.
+ */
 App::missing(function($exception)
 {
 	$url = Request::fullUrl();
@@ -72,4 +80,12 @@ App::missing(function($exception)
 
 	Log::warning("404 for URL $url -- Referer: $referer");
 	return Response::view('errors.missing', array(), 404);
+});
+
+/**
+ * Handler for maintenance mode (php artisan down).
+ */
+App::down(function()
+{
+	return Response::view('errors.maintenance', array(), 503);
 });
