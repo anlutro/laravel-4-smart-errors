@@ -1,13 +1,15 @@
 # Laravel 4 Smart Errors
 Small system for showing a very generic error message to your end-users while sending an email to yourself with all relevant information about the exception.
 
-Also adds a small 404 error page and logs a little information about the 404.
+- Uncaught exceptions send an email with detailed information (referrer, route name/action, any input given and more)
+- 404 errors are written in the log as warnings with the URL accessed + referrer
+- Simple maintenance mode handler
 
-Copy error.php to your app folder and make sure it's included somewhere (`app/start/global.php` is a good place). Copy the views folder as well.
+Copy the app folder into your project, answering yes to any questions about overwriting. Add an include statement for `error.php` in `app/start/global.php` and remove the default `App::error`, `App::missing` and `App::down` handlers.
 
-Add a developer key in `app/config/mail.php` - for example:
+Add a "developer" key to `app/config/mail.php` containing your or your dev team's email address. Example:
 
-	'developer' => 'webdev@example.com',
+	'developer' => 'webdev@example.com'
 
 # License
 The contents of this repository is released under the [MIT license](http://opensource.org/licenses/MIT).
