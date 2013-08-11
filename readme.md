@@ -11,5 +11,7 @@ Add a "developer" key to `app/config/mail.php` containing your or your dev team'
 
 	'developer' => 'webdev@example.com'
 
+Make sure HTML errors are turned on in your php.ini.
+
 # License
 The contents of this repository is released under the [MIT license](http://opensource.org/licenses/MIT).
