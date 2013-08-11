@@ -50,7 +50,7 @@ App::error(function(Exception $exception, $code)
 		Config::set('mail.pretend', false);
 
 		$mailData = array(
-			'exception' => nl2br($exception),
+			'exception' => $exception,
 			'url'       => Request::fullUrl(),
 			'route'     => $route,
 			'input'     => $input,
