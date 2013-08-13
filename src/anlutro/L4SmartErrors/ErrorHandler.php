@@ -9,14 +9,51 @@
 
 namespace anlutro\L4SmartErrors;
 
+/**
+ * The class that handles the errors. Obviously
+ */
 class ErrorHandler
 {
+	/**
+	 * The Laravel application.
+	 *
+	 * @var Illuminate\Foundation\Application
+	 */
 	protected $app;
+
+	/**
+	 * The email to send error reports to.
+	 *
+	 * @var string
+	 */
 	protected $devEmail;
+	
+	/**
+	 * The view to use for email error reports.
+	 *
+	 * @var string
+	 */
 	protected $emailView;
+
+	/**
+	 * The view for generic error messages.
+	 *
+	 * @var string
+	 */
 	protected $exceptionView;
+	
+	/**
+	 * The view for 404 error messages.
+	 *
+	 * @var string
+	 */
 	protected $missingView;
 
+	/**
+	 * Construct the handler, injecting the Laravel application.
+	 *
+	 * @param Illuminate\Foundation\Application $app
+	 */
 	public function __construct($app)
 	{
 		$this->app = $app;
@@ -24,11 +61,22 @@ class ErrorHandler
 		$pkg = 'anlutro/l4-smart-errors::';
 
 		$this->devEmail = $this->app['config']->get($pkg.'dev_email');
+
+		// if configs are null, set some defaults
 		$this->emailView = $this->app['config']->get($pkg.'email_view') ?: $pkg.'email';
 		$this->exceptionView = $this->app['config']->get($pkg.'exception_view') ?: $pkg.'generic';
 		$this->missingView = $this->app['config']->get($pkg.'missing_view') ?: $pkg.'missing';
 	}
 
+	/**
+	 * Handle an uncaught exception. Returns a view if config.app.debug == false,
+	 * otherwise returns void to let the default L4 error handler do its job.
+	 *
+	 * @param  Exception $exception
+	 * @param  integer   $code
+	 *
+	 * @return View|void
+	 */
 	public function handleException($exception, $code)
 	{
 		// get the request URL
@@ -78,6 +126,13 @@ class ErrorHandler
 		// if debug is true, do nothing and the default exception whoops page is shown
 	}
 
+	/**
+	 * Handle a 404 error.
+	 *
+	 * @param  Exception $exception
+	 *
+	 * @return Response
+	 */
 	public function handleMissing($exception)
 	{
 		$url = $this->app['request']->fullUrl();
@@ -85,7 +140,6 @@ class ErrorHandler
 
 		$this->app['log']->warning("404 for URL $url -- Referer: $referer");
 
-		// dd($this->missingView);
 		$content = $this->app['view']->make($this->missingView);
 		return new \Illuminate\Http\Response($content, 404);
 	}
