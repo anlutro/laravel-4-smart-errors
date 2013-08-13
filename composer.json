@@ -1,0 +1,23 @@
+{
+    "name": "anlutro/l4-smart-errors",
+    "description": "Smart error reporting for Laravel 4.",
+    "keywords": ["error", "laravel"],
+    "homepage": "https://github.com/anlutro/laravel-4-smart-errors",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andreas Lutro",
+            "email": "anlutro@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "illuminate/support": "4.0.x"
+    },
+    "autoload": {
+        "psr-0": {
+            "anlutro\\L4SmartErrors": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
