@@ -18,10 +18,28 @@ When the package has been downloaded, add the following to the list of service p
 
 Run `php artisan config:publish anlutro/l4-smart-errors` and open the config file that has been generated. Modify it to your needs. Copy the lang and/or views directories from the vendor directory if you want some templates to work with.
 
-Remove any App::error and App::missing you may have in your application to prevent conflicts.
+Remove any App::error and App::missing you may have in your application to prevent conflicts. If you want to handle specific types of Exceptions yourself, you can add App::error closures with those specific exceptions as arguments.
+
+# Non-fatal error handling
+If you want to mail yourself on an error but not dump the user to a generic error screen, you can either fire a Laravel event:
+
+	try {
+		// something
+	} catch (SpecificExcpetion $e) {
+		Event::fire('smarterror', array($e));
+		// display nice error message
+	}
+
+Uncaught exceptions in this snippet would trigger the error mail as usual.
+
+You can also instanciate the error handler yourself, which is slightly more difficult as you need to get the Illuminate\Foundation\Application instance somehow.
+
+	$handler = new \anlutro\L4SmartErrors\ErrorHandler($app);
+	$handler->handleException($exception);
+
+`handleException` will return the generic error view if you'd like to use it for something.
 
 # Contribution
-
 I'll accept language files right away without discussion. For anything else, please be descriptive in your pull requests.
 
 # License
