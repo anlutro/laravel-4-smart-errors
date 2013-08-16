@@ -74,10 +74,11 @@ class ErrorHandler
 	 *
 	 * @param  Exception $exception
 	 * @param  integer   $code
+	 * @param  boolean   $event      Whether the exception is handled via an event
 	 *
 	 * @return View|void
 	 */
-	public function handleException($exception, $code)
+	public function handleException($exception, $code = null, $event = false)
 	{
 		// get the request URL
 		$url = $this->app['request']->fullUrl();
@@ -92,7 +93,11 @@ class ErrorHandler
 		}
 
 		// log the exception
-		$this->app['log']->error("Uncaught Exception -- URL: $url -- Route: $route");
+		if ($event) {
+			$this->app['log']->error("Exception caught by event -- URL: $url -- Route: $route");
+		} else {
+			$this->app['log']->error("Uncaught Exception -- URL: $url -- Route: $route");
+		}
 		$this->app['log']->error($exception);
 
 		// get any input and log it
@@ -119,7 +124,7 @@ class ErrorHandler
 		}
 
 		// if debug is false, show the friendly error message
-		if ($this->app['config']->get('app.debug') === false) {
+		if (!$event && $this->app['config']->get('app.debug') === false) {
 			return $this->app['view']->make($this->exceptionView);
 		}
 

@@ -43,6 +43,11 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 			$handler = new ErrorHandler($app);
 			return $handler->handleMissing($exception);
 		});
+
+		$this->app['events']->listen('smarterror', function($exception) use ($app) {
+			$handler = new ErrorHandler($app);
+			$handler->handleException($exception, null, true);
+		});
 	}
 
 	/**
