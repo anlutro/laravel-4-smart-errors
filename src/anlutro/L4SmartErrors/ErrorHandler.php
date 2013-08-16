@@ -118,8 +118,11 @@ class ErrorHandler
 				'input'     => $input,
 			);
 
-			$this->app['mailer']->send($this->emailView, $mailData, function($msg) use($code) {
-				$msg->to($this->devEmail)->subject('Error report');
+			$devEmail = $this->devEmail;
+			$subject = $event ? 'Error report - event' : 'Error report - uncaught exception';
+
+			$this->app['mailer']->send($this->emailView, $mailData, function($msg) use($devEmail, $subject) {
+				$msg->to($devEmail)->subject($subject);
 			});
 		}
 
