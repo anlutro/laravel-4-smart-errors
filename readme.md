@@ -1,4 +1,6 @@
 # Laravel 4 Smart Errors
+[![Build Status](https://travis-ci.org/anlutro/laravel-4-smart-errors.png?branch=master)](https://travis-ci.org/anlutro/laravel-4-smart-errors)
+
 Small system for showing a very generic error message to your end-users while sending an email to yourself with all relevant information about the exception.
 
 - Uncaught exceptions send an email with detailed information (referrer, route name/action, any input given and more)
