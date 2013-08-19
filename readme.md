@@ -45,5 +45,10 @@ I'll accept language files right away without discussion. For anything else, ple
 
 If anyone wants to make a better-looking layout - mine is pretty ugly, I admit - please open an issue so we can discuss the matter.
 
+# Contact
+Open an issue on GitHub if you have any problems or suggestions.
+
+If you have any questions or want to have a chat, look for anlutro @ irc.freenode.net.
+
 # License
 The contents of this repository is released under the [MIT license](http://opensource.org/licenses/MIT).
