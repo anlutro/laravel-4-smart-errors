@@ -3,6 +3,7 @@ Small system for showing a very generic error message to your end-users while se
 
 - Uncaught exceptions send an email with detailed information (referrer, route name/action, any input given and more)
 - 404 errors are written in the log as warnings with the URL accessed + referrer
+- Alert-level log events are sent via email (since 1.3)
 
 Add the following to your composer.json before running `composer update`:
 

@@ -34,19 +34,30 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 		// $this->app in closures won't work in php 5.3
 		$app = $this->app;
 
+		// register the error handler
 		$this->app->error(function(Exception $exception, $code) use ($app) {
 			$handler = new ErrorHandler($app);
 			return $handler->handleException($exception, $code);
 		});
 
+		// register the 404 handler
 		$this->app->missing(function($exception) use ($app) {
 			$handler = new ErrorHandler($app);
 			return $handler->handleMissing($exception);
 		});
 
+		// allow our event handler to be triggered via events
 		$this->app['events']->listen('smarterror', function($exception) use ($app) {
 			$handler = new ErrorHandler($app);
 			$handler->handleException($exception, null, true);
+		});
+
+		// register the alert level log listener
+		$this->app['log']->listen(function($level, $message, $context) use ($app) {
+			if ($level == 'alert') {
+				$handler = new ErrorHandler($app);
+				$handler->handleAlert($message, $context);
+			}
 		});
 	}
 

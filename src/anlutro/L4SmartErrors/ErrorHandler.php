@@ -71,6 +71,7 @@ class ErrorHandler
 
 		// if configs are null, set some defaults
 		$this->emailView = $this->app['config']->get($pkg.'email_view') ?: $pkg.'email';
+		$this->alertEmailView = $this->app['config']->get($pkg.'alert_email_view') ?: $pkg.'alert_email';
 		$this->exceptionView = $this->app['config']->get($pkg.'exception_view') ?: $pkg.'generic';
 		$this->missingView = $this->app['config']->get($pkg.'missing_view') ?: $pkg.'missing';
 		$this->dateFormat = $this->app['config']->get($pkg.'date_format') ?: 'Y-m-d H:i:s e';
@@ -88,12 +89,6 @@ class ErrorHandler
 	 */
 	public function handleException($exception, $code = null, $event = false)
 	{
-		// get the request URL
-		$url = $this->app['request']->fullUrl();
-
-		// get the current route info
-		$route = $this->findRoute();
-
 		// log the exception
 		if ($event) {
 			$this->app['log']->error("Exception caught by event -- URL: $url -- Route: $route");
@@ -115,14 +110,15 @@ class ErrorHandler
 
 			$mailData = array(
 				'exception' => $exception,
-				'url'       => $url,
-				'route'     => $route,
+				'url'       => $this->app['request']->fullUrl(),
+				'route'     => $this->findRoute(),
 				'input'     => $input,
 				'time'      => date($this->dateFormat),
 			);
 
 			$devEmail = $this->devEmail;
 			$subject = $event ? 'Error report - event' : 'Error report - uncaught exception';
+			$subject .= ' - '.$this->app['request']->root();
 
 			$this->app['mailer']->send($this->emailView, $mailData, function($msg) use($devEmail, $subject) {
 				$msg->to($devEmail)->subject($subject);
@@ -153,6 +149,40 @@ class ErrorHandler
 
 		$content = $this->app['view']->make($this->missingView);
 		return new \Illuminate\Http\Response($content, 404);
+	}
+
+	/**
+	 * Handle an alert-level logging event.
+	 *
+	 * @param  string $message
+	 * @param  array $context
+	 *
+	 * @return void
+	 */
+	public function handleAlert($message, $context)
+	{
+		if ($this->app['config']->get('app.debug') !== false || empty($this->devEmail)) {
+			return;
+		}
+
+		// I sometimes set pretend to true in staging, but would still like an email
+		$this->app['config']->set('mail.pretend', false);
+
+		$mailData = array(
+			'message'   => $message,
+			'context'   => $context,
+			'url'       => $this->app['request']->fullUrl(),
+			'route'     => $this->findRoute(),
+			'time'      => date($this->dateFormat),
+		);
+
+		$devEmail = $this->devEmail;
+		$subject = 'Alert logged';
+		$subject .= ' - '.$this->app['request']->root();
+
+		$this->app['mailer']->send($this->emailView, $mailData, function($msg) use($devEmail, $subject) {
+			$msg->to($devEmail)->subject($subject);
+		});
 	}
 
 	/**
