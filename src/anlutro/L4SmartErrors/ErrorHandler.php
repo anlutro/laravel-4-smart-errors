@@ -92,13 +92,7 @@ class ErrorHandler
 		$url = $this->app['request']->fullUrl();
 
 		// get the current route info
-		if ($this->app['router']->currentRouteAction()) {
-			$route = $this->app['router']->currentRouteAction();
-		} elseif ($this->app['router']->currentRouteName()) {
-			$route = $this->app['router']->currentRouteName();
-		} else {
-			$route = 'NA (probably a closure)';
-		}
+		$route = $this->findRoute();
 
 		// log the exception
 		if ($event) {
@@ -159,5 +153,21 @@ class ErrorHandler
 
 		$content = $this->app['view']->make($this->missingView);
 		return new \Illuminate\Http\Response($content, 404);
+	}
+
+	/**
+	 * Get the action or name of the current route.
+	 *
+	 * @return string
+	 */
+	protected function findRoute()
+	{
+		if ($this->app['router']->currentRouteAction()) {
+			return $this->app['router']->currentRouteAction();
+		} elseif ($this->app['router']->currentRouteName()) {
+			return $this->app['router']->currentRouteName();
+		} else {
+			return 'NA (probably a closure)';
+		}
 	}
 }
