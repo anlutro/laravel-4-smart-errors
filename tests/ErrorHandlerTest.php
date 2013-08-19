@@ -52,10 +52,12 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->request->shouldReceive('all')
 			->andReturn(array());
 
+		// ugly php 5.3 hack
+		$cThis = $this;
 		$this->logger->shouldReceive('error')->once()
-			->andReturnUsing(function($logstr) {
-				$this->assertContains('Route: action', $logstr);
-				$this->assertContains('URL: url', $logstr);
+			->andReturnUsing(function($logstr) use($cThis) {
+				$cThis->assertContains('Route: action', $logstr);
+				$cThis->assertContains('URL: url', $logstr);
 			});
 
 		$this->handler->handleException($exception);
@@ -73,9 +75,11 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->request->shouldReceive('all')
 			->andReturn(array('key' => 'val'));
 
+		// ugly php 5.3 hack
+		$cThis = $this;
 		$this->logger->shouldReceive('error')->once()
-			->andReturnUsing(function($logstr) {
-				$this->assertContains('Input: '.json_encode(array('key' => 'val')), $logstr);
+			->andReturnUsing(function($logstr) use($cThis) {
+				$cThis->assertContains('Input: '.json_encode(array('key' => 'val')), $logstr);
 			});
 
 		$this->handler->handleException($exception);
