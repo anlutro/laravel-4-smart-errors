@@ -1,4 +1,5 @@
 <p>
+	Time: {{ $time }}<br>
 	URL: {{ $url }}<br>
 	Route: {{ $route }}
 </p>

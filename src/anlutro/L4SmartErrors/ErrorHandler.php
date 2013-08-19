@@ -50,6 +50,13 @@ class ErrorHandler
 	protected $missingView;
 
 	/**
+	 * The PHP date format that should be used.
+	 *
+	 * @var string
+	 */
+	protected $dateFormat;
+
+	/**
 	 * Construct the handler, injecting the Laravel application.
 	 *
 	 * @param Illuminate\Foundation\Application $app
@@ -66,6 +73,7 @@ class ErrorHandler
 		$this->emailView = $this->app['config']->get($pkg.'email_view') ?: $pkg.'email';
 		$this->exceptionView = $this->app['config']->get($pkg.'exception_view') ?: $pkg.'generic';
 		$this->missingView = $this->app['config']->get($pkg.'missing_view') ?: $pkg.'missing';
+		$this->dateFormat = $this->app['config']->get($pkg.'date_format') ?: 'Y-m-d H:i:s e';
 	}
 
 	/**
@@ -116,6 +124,7 @@ class ErrorHandler
 				'url'       => $url,
 				'route'     => $route,
 				'input'     => $input,
+				'time'      => date($this->dateFormat),
 			);
 
 			$devEmail = $this->devEmail;
