@@ -47,20 +47,22 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->router->shouldReceive('currentRouteAction')
 			->andReturn('action');
+
 		$this->request->shouldReceive('fullUrl')
 			->andReturn('url');
 		$this->request->shouldReceive('all')
 			->andReturn(array());
 
 		// ugly php 5.3 hack
-		$cThis = $this;
 		$this->logger->shouldReceive('error')->once()
-			->andReturnUsing(function($logstr) use($cThis) {
-				$cThis->assertContains('Route: action', $logstr);
-				$cThis->assertContains('URL: url', $logstr);
+			->andReturnUsing(function($input) use(&$logged) {
+				$logged = $input;
 			});
 
 		$this->handler->handleException($exception);
+
+		$this->assertContains('Route: action', $logged);
+		$this->assertContains('URL: url', $logged);
 	}
 
 	public function testExceptionHandlerWithInput()
@@ -70,19 +72,21 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->router->shouldReceive('currentRouteAction')
 			->andReturn('action');
+
 		$this->request->shouldReceive('fullUrl')
 			->andReturn('url');
 		$this->request->shouldReceive('all')
 			->andReturn(array('key' => 'val'));
 
 		// ugly php 5.3 hack
-		$cThis = $this;
 		$this->logger->shouldReceive('error')->once()
-			->andReturnUsing(function($logstr) use($cThis) {
-				$cThis->assertContains('Input: '.json_encode(array('key' => 'val')), $logstr);
+			->andReturnUsing(function($input) use(&$logged) {
+				$logged = $input;
 			});
 
 		$this->handler->handleException($exception);
+
+		$this->assertContains('Input: '.json_encode(array('key' => 'val')), $logged);
 	}
 
 	public function testRealExceptionHandler()
@@ -92,6 +96,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->router->shouldReceive('currentRouteAction')
 			->andReturn('action');
+
 		$this->request->shouldReceive('fullUrl')
 			->andReturn('url');
 		$this->request->shouldReceive('root')
@@ -139,6 +144,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->router->shouldReceive('currentRouteAction')
 			->andReturn('action');
+
 		$this->request->shouldReceive('fullUrl')
 			->andReturn('url');
 		$this->request->shouldReceive('root')
