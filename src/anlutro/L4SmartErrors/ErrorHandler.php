@@ -156,13 +156,13 @@ class ErrorHandler
 		$logstr .= " (handled by L4SmartErrors)\nURL: $url -- Route: $route\n";
 		$logstr .= $exception;
 
-		$this->logger->error($logstr);
-
 		// get any input and log it
 		$input = $this->request->all();
 		if (!empty($input)) {
-			$this->logger->error('Input: ' . json_encode($input));
+			$logstr .= 'Input: ' . json_encode($input);
 		}
+
+		$this->logger->error($logstr);
 
 		// if debug is false and dev_email is set, send the mail
 		if ($this->config->get('app.debug') === false && $this->devEmail) {
@@ -209,8 +209,7 @@ class ErrorHandler
 
 		$this->logger->warning("404 for URL $url -- Referer: $referer");
 
-		$content = $this->view->make($this->missingView);
-		return new \Illuminate\Http\Response($content, 404);
+		return $this->view->make($this->missingView);
 	}
 
 	/**

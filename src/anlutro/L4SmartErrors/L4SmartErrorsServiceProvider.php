@@ -10,6 +10,7 @@
 namespace anlutro\L4SmartErrors;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Http\Response;
 use Exception;
 
 class L4SmartErrorsServiceProvider extends ServiceProvider
@@ -49,7 +50,7 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 
 		// register the 404 handler
 		$this->app->missing(function($exception) use ($app) {
-			return $app['smarterror']->handleMissing($exception);
+			return new Response($app['smarterror']->handleMissing($exception), 404);
 		});
 
 		// allow our event handler to be triggered via events
