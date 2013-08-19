@@ -43,5 +43,7 @@ You can also instanciate the error handler yourself, which is slightly more diff
 # Contribution
 I'll accept language files right away without discussion. For anything else, please be descriptive in your pull requests.
 
+If anyone wants to make a better-looking layout - mine is pretty ugly, I admit - please open an issue so we can discuss the matter.
+
 # License
 The contents of this repository is released under the [MIT license](http://opensource.org/licenses/MIT).

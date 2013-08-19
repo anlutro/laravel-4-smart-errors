@@ -57,24 +57,78 @@ class ErrorHandler
 	protected $dateFormat;
 
 	/**
+	 * Whether or not to send an email even with mail.pretend = true
+	 *
+	 * @var boolean
+	 */
+	protected $forceEmail;
+
+	/**
+	 * The name of the laravel package.
+	 *
+	 * @var string
+	 */
+	protected $package;
+
+	/**
 	 * Construct the handler, injecting the Laravel application.
 	 *
 	 * @param Illuminate\Foundation\Application $app
 	 */
-	public function __construct($app)
+	public function __construct($package)
+	{
+		$this->package = $package;
+	}
+
+	public function setApplication($app)
 	{
 		$this->app = $app;
 
-		$pkg = 'anlutro/l4-smart-errors::';
+		$this->setConfig($app['config']);
+		$this->setMailer($app['mailer']);
+		$this->setLogger($app['log']);
+		$this->setRequest($app['request']);
+		$this->setRouter($app['router']);
+		$this->setView($app['view']);
+	}
 
-		$this->devEmail = $this->app['config']->get($pkg.'dev_email');
+	public function setConfig($config)
+	{
+		$pkg = $this->package . '::';
+		$this->config = $config;
 
-		// if configs are null, set some defaults
-		$this->emailView = $this->app['config']->get($pkg.'email_view') ?: $pkg.'email';
-		$this->alertEmailView = $this->app['config']->get($pkg.'alert_email_view') ?: $pkg.'alert_email';
-		$this->exceptionView = $this->app['config']->get($pkg.'exception_view') ?: $pkg.'generic';
-		$this->missingView = $this->app['config']->get($pkg.'missing_view') ?: $pkg.'missing';
-		$this->dateFormat = $this->app['config']->get($pkg.'date_format') ?: 'Y-m-d H:i:s e';
+		$this->devEmail = $this->config->get($pkg.'dev_email');
+		$this->forceEmail = $this->config->get($pkg.'force_email');
+		$this->emailView = $this->config->get($pkg.'email_view') ?: $pkg.'email';
+		$this->alertEmailView = $this->config->get($pkg.'alert_email_view') ?: $pkg.'alert_email';
+		$this->exceptionView = $this->config->get($pkg.'exception_view') ?: $pkg.'generic';
+		$this->missingView = $this->config->get($pkg.'missing_view') ?: $pkg.'missing';
+		$this->dateFormat = $this->config->get($pkg.'date_format') ?: 'Y-m-d H:i:s e';
+	}
+
+	public function setMailer($mailer)
+	{
+		$this->mailer = $mailer;
+	}
+
+	public function setLogger($logger)
+	{
+		$this->logger = $logger;
+	}
+
+	public function setRequest($request)
+	{
+		$this->request = $request;
+	}
+
+	public function setRouter($router)
+	{
+		$this->router = $router;
+	}
+
+	public function setView($view)
+	{
+		$this->view = $view;
 	}
 
 	/**
@@ -89,45 +143,53 @@ class ErrorHandler
 	 */
 	public function handleException($exception, $code = null, $event = false)
 	{
+		$route = $this->findRoute();
+		$url = $this->request->fullUrl();
+
 		// log the exception
 		if ($event) {
-			$this->app['log']->error("Exception caught by event -- URL: $url -- Route: $route");
+			$logstr = 'Exception caught by event';
 		} else {
-			$this->app['log']->error("Uncaught Exception -- URL: $url -- Route: $route");
+			$logstr = 'Uncaught Exception';
 		}
-		$this->app['log']->error($exception);
+
+		$logstr .= " (handled by L4SmartErrors)\nURL: $url -- Route: $route\n";
+		$logstr .= $exception;
+
+		$this->logger->error($logstr);
 
 		// get any input and log it
-		$input = $this->app['request']->all();
+		$input = $this->request->all();
 		if (!empty($input)) {
-			$this->app['log']->error('Input: ' . json_encode($input));
+			$this->logger->error('Input: ' . json_encode($input));
 		}
 
 		// if debug is false and dev_email is set, send the mail
-		if ($this->app['config']->get('app.debug') === false && $this->devEmail) {
-			// I sometimes set pretend to true in staging, but would still like an email
-			$this->app['config']->set('mail.pretend', false);
+		if ($this->config->get('app.debug') === false && $this->devEmail) {
+			if ($this->forceEmail) {
+				$this->config->set('mail.pretend', false);
+			}
 
 			$mailData = array(
 				'exception' => $exception,
-				'url'       => $this->app['request']->fullUrl(),
-				'route'     => $this->findRoute(),
+				'url'       => $url,
+				'route'     => $route,
 				'input'     => $input,
 				'time'      => date($this->dateFormat),
 			);
 
 			$devEmail = $this->devEmail;
 			$subject = $event ? 'Error report - event' : 'Error report - uncaught exception';
-			$subject .= ' - '.$this->app['request']->root();
+			$subject .= ' - '.$this->request->root();
 
-			$this->app['mailer']->send($this->emailView, $mailData, function($msg) use($devEmail, $subject) {
+			$this->mailer->send($this->emailView, $mailData, function($msg) use($devEmail, $subject) {
 				$msg->to($devEmail)->subject($subject);
 			});
 		}
 
 		// if debug is false, show the friendly error message
-		if (!$event && $this->app['config']->get('app.debug') === false) {
-			return $this->app['view']->make($this->exceptionView);
+		if (!$event && $this->config->get('app.debug') === false) {
+			return $this->view->make($this->exceptionView);
 		}
 
 		// if debug is true, do nothing and the default exception whoops page is shown
@@ -142,12 +204,12 @@ class ErrorHandler
 	 */
 	public function handleMissing($exception)
 	{
-		$url = $this->app['request']->fullUrl();
-		$referer = $this->app['request']->header('referer');
+		$url = $this->request->fullUrl();
+		$referer = $this->request->header('referer');
 
-		$this->app['log']->warning("404 for URL $url -- Referer: $referer");
+		$this->logger->warning("404 for URL $url -- Referer: $referer");
 
-		$content = $this->app['view']->make($this->missingView);
+		$content = $this->view->make($this->missingView);
 		return new \Illuminate\Http\Response($content, 404);
 	}
 
@@ -161,26 +223,27 @@ class ErrorHandler
 	 */
 	public function handleAlert($message, $context)
 	{
-		if ($this->app['config']->get('app.debug') !== false || empty($this->devEmail)) {
+		if ($this->config->get('app.debug') !== false || empty($this->devEmail)) {
 			return;
 		}
 
-		// I sometimes set pretend to true in staging, but would still like an email
-		$this->app['config']->set('mail.pretend', false);
+		if ($this->forceEmail) {
+			$this->config->set('mail.pretend', false);
+		}
 
 		$mailData = array(
-			'message'   => $message,
+			'logmsg'    => $message,
 			'context'   => $context,
-			'url'       => $this->app['request']->fullUrl(),
+			'url'       => $this->request->fullUrl(),
 			'route'     => $this->findRoute(),
 			'time'      => date($this->dateFormat),
 		);
 
 		$devEmail = $this->devEmail;
 		$subject = 'Alert logged';
-		$subject .= ' - '.$this->app['request']->root();
+		$subject .= ' - '.$this->request->root();
 
-		$this->app['mailer']->send($this->emailView, $mailData, function($msg) use($devEmail, $subject) {
+		$this->mailer->send($this->alertEmailView, $mailData, function($msg) use($devEmail, $subject) {
 			$msg->to($devEmail)->subject($subject);
 		});
 	}
@@ -192,10 +255,10 @@ class ErrorHandler
 	 */
 	protected function findRoute()
 	{
-		if ($this->app['router']->currentRouteAction()) {
-			return $this->app['router']->currentRouteAction();
-		} elseif ($this->app['router']->currentRouteName()) {
-			return $this->app['router']->currentRouteName();
+		if ($this->router->currentRouteAction()) {
+			return $this->router->currentRouteAction();
+		} elseif ($this->router->currentRouteName()) {
+			return $this->router->currentRouteName();
 		} else {
 			return 'NA (probably a closure)';
 		}

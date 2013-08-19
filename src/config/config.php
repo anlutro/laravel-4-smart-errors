@@ -11,6 +11,9 @@ return array(
 	// The email the error reports will be sent to.
 	'dev_email' => '',
 
+	// send an email even if mail.pretend == true
+	'force_email' => false,
+
 	// The error handler email view. Leave as null for default
 	'email_view' => null,
 

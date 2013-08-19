@@ -29,34 +29,38 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	 */
 	public function boot()
 	{
-		$this->package('anlutro/l4-smart-errors', 'anlutro/l4-smart-errors');
+		$pkg = 'anlutro/l4-smart-errors';
+
+		$this->package($pkg, $pkg);
 
 		// $this->app in closures won't work in php 5.3
 		$app = $this->app;
 
+		$this->app['smarterror'] = $this->app->share(function($app) use ($pkg) {
+			$handler = new ErrorHandler($pkg);
+			$handler->setApplication($app);
+			return $handler;
+		});
+
 		// register the error handler
 		$this->app->error(function(Exception $exception, $code) use ($app) {
-			$handler = new ErrorHandler($app);
-			return $handler->handleException($exception, $code);
+			return $app['smarterror']->handleException($exception, $code);
 		});
 
 		// register the 404 handler
 		$this->app->missing(function($exception) use ($app) {
-			$handler = new ErrorHandler($app);
-			return $handler->handleMissing($exception);
+			return $app['smarterror']->handleMissing($exception);
 		});
 
 		// allow our event handler to be triggered via events
 		$this->app['events']->listen('smarterror', function($exception) use ($app) {
-			$handler = new ErrorHandler($app);
-			$handler->handleException($exception, null, true);
+			$app['smarterror']->handleException($exception, null, true);
 		});
 
 		// register the alert level log listener
 		$this->app['log']->listen(function($level, $message, $context) use ($app) {
 			if ($level == 'alert') {
-				$handler = new ErrorHandler($app);
-				$handler->handleAlert($message, $context);
+				$app['smarterror']->handleAlert($message, $context);
 			}
 		});
 	}
@@ -68,7 +72,7 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	 */
 	public function register()
 	{
-		//
+		// ...
 	}
 
 	/**
