@@ -49,9 +49,8 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 			->andReturn('action');
 		$this->request->shouldReceive('fullUrl')
 			->andReturn('url');
-		// Input::all()
 		$this->request->shouldReceive('all')
-			->andReturn([]);
+			->andReturn(array());
 
 		$this->logger->shouldReceive('error')->once()
 			->andReturnUsing(function($logstr) {
@@ -72,11 +71,11 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->request->shouldReceive('fullUrl')
 			->andReturn('url');
 		$this->request->shouldReceive('all')
-			->andReturn(['key' => 'val']);
+			->andReturn(array('key' => 'val'));
 
 		$this->logger->shouldReceive('error')->once()
 			->andReturnUsing(function($logstr) {
-				$this->assertContains('Input: '.json_encode(['key' => 'val']), $logstr);
+				$this->assertContains('Input: '.json_encode(array('key' => 'val')), $logstr);
 			});
 
 		$this->handler->handleException($exception);
@@ -94,7 +93,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->request->shouldReceive('root')
 			->andReturn('root');
 		$this->request->shouldReceive('all')
-			->andReturn([]);
+			->andReturn(array());
 
 		$this->logger->shouldReceive('error')->once();
 
@@ -127,7 +126,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 	{
 		$this->config->set('app.debug', true);
 		
-		$this->handler->handleAlert('test', []);
+		$this->handler->handleAlert('test', array());
 	}
 
 	public function testAlertHandler()
@@ -143,6 +142,6 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->mailer->shouldReceive('send')->once();
 
-		$this->handler->handleAlert('test', []);
+		$this->handler->handleAlert('test', array());
 	}
 }
