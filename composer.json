@@ -15,6 +15,7 @@
         "illuminate/support": "4.0.x"
     },
     "require-dev": {
+        "anlutro/l4-config-mock": "dev-master",
         "mockery/mockery": "dev-master"
     },
     "autoload": {

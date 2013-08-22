@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/mocks/Config.php';
 
 use anlutro\L4SmartErrors\ErrorHandler;
+use anlutro\L4ConfigMock\ConfigMock;
 use Mockery as m;
 
 class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
@@ -13,8 +13,8 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->handler = new ErrorHandler($pkg);
 
-		$config = include __DIR__ . '/../src/config/config.php';
-		$this->config = new Config($config);
+		$this->config = new ConfigMock;
+		$this->config->load(__DIR__ . '/../src/config/config.php', $pkg);
 		$this->config->set($pkg.'::dev_email', 'test@example.com');
 		$this->config->set($pkg.'::force_email', false);
 		$this->handler->setConfig($this->config);
