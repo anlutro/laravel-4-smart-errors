@@ -68,6 +68,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 	public function testExceptionHandlerWithInput()
 	{
 		$exception = new Exception('test');
+		$input = array('key' => 'val');
 		$this->config->set('app.debug', true);
 
 		$this->router->shouldReceive('currentRouteAction')
@@ -76,7 +77,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->request->shouldReceive('fullUrl')
 			->andReturn('url');
 		$this->request->shouldReceive('all')
-			->andReturn(array('key' => 'val'));
+			->andReturn($input);
 
 		// ugly php 5.3 hack
 		$this->logger->shouldReceive('error')->once()
@@ -86,31 +87,53 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->handler->handleException($exception);
 
-		$this->assertContains('Input: '.json_encode(array('key' => 'val')), $logged);
+		$this->assertContains('Input: '.json_encode($input), $logged);
 	}
 
 	public function testRealExceptionHandler()
 	{
 		$exception = new Exception('test');
+		$route = 'action';
+		$url = 'url';
+		$root = 'root';
+		$input = array('test' => 'input');
 		$this->config->set('app.debug', false);
 
 		$this->router->shouldReceive('currentRouteAction')
-			->andReturn('action');
-
+			->andReturn($route);
 		$this->request->shouldReceive('fullUrl')
-			->andReturn('url');
+			->andReturn($url);
 		$this->request->shouldReceive('root')
-			->andReturn('root');
+			->andReturn($root);
 		$this->request->shouldReceive('all')
-			->andReturn(array());
+			->andReturn($input);
 
 		$this->logger->shouldReceive('error')->once();
 
-		$this->mailer->shouldReceive('send')->once();
+		$this->mailer->shouldReceive('send')->once()
+			->with('anlutro/l4-smart-errors::email', m::on(function($data) use(&$mailData) {
+				$mailData = $data;
+				return true;
+			}), m::on(function($closure) use ($root) {
+				$message = m::mock('message');
+				$message->shouldReceive('to')
+					->with('test@example.com')
+					->andReturn(m::self());
+				$message->shouldReceive('subject')
+					->with('Error report - uncaught exception - '.$root)
+					->andReturn(m::self());
+				$closure($message);
+				return true;
+			}));
 
 		$this->view->shouldReceive('make')->once();
 
 		$this->handler->handleException($exception);
+
+		$this->assertContains($exception, $mailData);
+		$this->assertContains($url, $mailData);
+		$this->assertContains($route, $mailData);
+		$this->assertContains($input, $mailData);
 	}
 
 	public function testMissingHandler()
