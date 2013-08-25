@@ -37,6 +37,8 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	 */
 	public function register()
 	{
+		$pkg = $this->package;
+
 		$this->app['smarterror'] = $this->app->share(function($app) use ($pkg) {
 			$handler = new ErrorHandler($pkg);
 			$handler->setApplication($app);
@@ -86,7 +88,7 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	 */
 	public function provides()
 	{
-		return array();
+		return array('smarterror');
 	}
 
 }
