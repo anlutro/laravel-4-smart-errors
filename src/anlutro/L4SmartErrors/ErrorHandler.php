@@ -15,13 +15,6 @@ namespace anlutro\L4SmartErrors;
 class ErrorHandler
 {
 	/**
-	 * The Laravel application.
-	 *
-	 * @var Illuminate\Foundation\Application
-	 */
-	protected $app;
-
-	/**
 	 * The email to send error reports to.
 	 *
 	 * @var string
@@ -82,8 +75,6 @@ class ErrorHandler
 
 	public function setApplication($app)
 	{
-		$this->app = $app;
-
 		$this->setConfig($app['config']);
 		$this->setMailer($app['mailer']);
 		$this->setLogger($app['log']);

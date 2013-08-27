@@ -24,24 +24,39 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	protected $defer = false;
 
 	/**
-	 * Bootstrap the application events.
+	 * The name of the package.
+	 *
+	 * @var string
+	 */
+	protected $package = 'anlutro/l4-smart-errors';
+
+	/**
+	 * Register the service provider.
 	 *
 	 * @return void
 	 */
-	public function boot()
+	public function register()
 	{
-		$pkg = 'anlutro/l4-smart-errors';
-
-		$this->package($pkg, $pkg);
-
-		// $this->app in closures won't work in php 5.3
-		$app = $this->app;
+		$pkg = $this->package;
 
 		$this->app['smarterror'] = $this->app->share(function($app) use ($pkg) {
 			$handler = new ErrorHandler($pkg);
 			$handler->setApplication($app);
 			return $handler;
 		});
+	}
+
+	/**
+	 * Bootstrap the application events.
+	 *
+	 * @return void
+	 */
+	public function boot()
+	{
+		$this->package($this->package, $this->package);
+
+		// $this->app in closures won't work in php 5.3
+		$app = $this->app;
 
 		// register the error handler
 		$this->app->error(function(Exception $exception, $code) use ($app) {
@@ -67,23 +82,13 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	}
 
 	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		// ...
-	}
-
-	/**
 	 * Get the services provided by the provider.
 	 *
 	 * @return array
 	 */
 	public function provides()
 	{
-		return array();
+		return array('smarterror');
 	}
 
 }
