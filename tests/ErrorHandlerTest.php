@@ -57,10 +57,11 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$self = $this;
 
 		$this->logger->shouldReceive('error')->once()
-			->andReturnUsing(function($logged) use($self) {
-				$this->assertContains('Route: action', $logged);
-				$this->assertContains('URL: url', $logged);
-			});
+			->with(m::on(function($logged) use($self) {
+				$self->assertContains('Route: action', $logged);
+				$self->assertContains('URL: url', $logged);
+				return true;
+			}));
 
 		$this->handler->handleException($exception);
 	}
@@ -111,9 +112,15 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->logger->shouldReceive('error')->once();
 
+		// php 5.3 hack
+		$self = $this;
+
 		$this->mailer->shouldReceive('send')->once()
-			->with('anlutro/l4-smart-errors::email', m::on(function($data) use(&$mailData) {
-				$mailData = $data;
+			->with('anlutro/l4-smart-errors::email', m::on(function($mailData) use($self, $exception, $url, $route, $input) {
+				$self->assertContains($exception, $mailData);
+				$self->assertContains($url, $mailData);
+				$self->assertContains($route, $mailData);
+				$self->assertContains($input, $mailData);
 				return true;
 			}), m::on(function($closure) use ($root) {
 				$message = m::mock('message');
@@ -131,10 +138,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->handler->handleException($exception);
 
-		$this->assertContains($exception, $mailData);
-		$this->assertContains($url, $mailData);
-		$this->assertContains($route, $mailData);
-		$this->assertContains($input, $mailData);
+		
 	}
 
 	public function testMissingHandler()
