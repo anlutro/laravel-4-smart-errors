@@ -200,7 +200,10 @@ class ErrorHandler
 
 		$this->logger->warning("404 for URL $url -- Referer: $referer");
 
-		return $this->view->make($this->missingView);
+		// if debug = true, don't return to show the default whoops error page
+		if ($this->config->get('app.debug') == false) {
+			return $this->view->make($this->missingView);
+		}
 	}
 
 	/**
