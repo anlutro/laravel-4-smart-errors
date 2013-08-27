@@ -54,15 +54,15 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 			->andReturn(array());
 
 		// ugly php 5.3 hack
+		$self = $this;
+
 		$this->logger->shouldReceive('error')->once()
-			->andReturnUsing(function($input) use(&$logged) {
-				$logged = $input;
+			->andReturnUsing(function($logged) use($self) {
+				$this->assertContains('Route: action', $logged);
+				$this->assertContains('URL: url', $logged);
 			});
 
 		$this->handler->handleException($exception);
-
-		$this->assertContains('Route: action', $logged);
-		$this->assertContains('URL: url', $logged);
 	}
 
 	public function testExceptionHandlerWithInput()
@@ -80,14 +80,15 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 			->andReturn($input);
 
 		// ugly php 5.3 hack
+		$self = $this;
+
 		$this->logger->shouldReceive('error')->once()
-			->andReturnUsing(function($input) use(&$logged) {
-				$logged = $input;
-			});
+			->with(m::on(function($logged) use($self, $input) {
+				$self->assertContains('Input: '.json_encode($input), $logged);
+				return true;
+			}));
 
 		$this->handler->handleException($exception);
-
-		$this->assertContains('Input: '.json_encode($input), $logged);
 	}
 
 	public function testRealExceptionHandler()
