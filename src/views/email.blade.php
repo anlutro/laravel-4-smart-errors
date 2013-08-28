@@ -4,8 +4,6 @@
 	Route: {{ $route }}
 </p>
 
-@if ()
-
 <p>
 	Error message: {{ $e->getMessage() }}
 	@if ($e->getCode() > 0)
