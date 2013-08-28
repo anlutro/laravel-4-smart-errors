@@ -5,30 +5,30 @@
 </p>
 
 <p>
-	Error message: {{ $e->getMessage() }}
-	@if ($e->getCode() > 0)
-	 - code: {{ $e->getCode() }}
+	Error message: {{ $exception->getMessage() }}
+	@if ($exception->getCode() > 0)
+	 - code: {{ $exception->getCode() }}
 	@endif
-	<br>In {{ $e->getFile() }} on line {{ $e->getLine() }}
+	<br>In {{ $exception->getFile() }} on line {{ $exception->getLine() }}
 </p>
 
 <p>
 	<b>Stack trace</b><br>
-	{{ nl2br($e->getTraceAsString()) }}
+	{{ nl2br($exception->getTraceAsString()) }}
 </p>
 
-@if ($pe = $e->getPrevious())
+@if ($previous = $exception->getPrevious())
 <p>
-	<b>Previous exception:</b> {{ $pe->getMessage() }}
-	@if ($pe->getCode() > 0)
-	 - code: {{ $pe->getCode() }}
+	<b>Previous exception:</b> {{ $previous->getMessage() }}
+	@if ($previous->getCode() > 0)
+	 - code: {{ $previous->getCode() }}
 	@endif
-	<br>In {{ $pe->getFile() }} on line {{ $pe->getLine() }}
+	<br>In {{ $previous->getFile() }} on line {{ $previous->getLine() }}
 </p>
 @endif
 
 
-@if ($input)
+@if (!empty($input))
 <p>
 	<b>Input</b><br>
 	<?php var_dump($input) ?>
