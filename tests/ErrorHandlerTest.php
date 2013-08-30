@@ -159,22 +159,6 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->handler->handleMissing($exception);
 	}
 
-	public function testMissingHandlerWhenDebugTrue()
-	{
-		$exception = new Exception('test');
-		$this->config->set('app.debug', true);
-
-		$this->request->shouldReceive('fullUrl')
-			->andReturn('url');
-		$this->request->shouldReceive('header')
-			->with('referer')
-			->andReturn('referer');
-
-		$this->logger->shouldReceive('warning')->once();
-
-		$this->handler->handleMissing($exception);
-	}
-
 	public function testAlertHandlerDoesNothingOnDebugTrue()
 	{
 		$this->config->set('app.debug', true);

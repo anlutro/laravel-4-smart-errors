@@ -73,6 +73,11 @@ class ErrorHandler
 		$this->package = $package;
 	}
 
+	/**
+	 * Inject the Laravel application to easily inject all instances.
+	 *
+	 * @param Illuminate\Foundation\Application $app
+	 */
 	public function setApplication($app)
 	{
 		$this->setConfig($app['config']);
@@ -83,6 +88,11 @@ class ErrorHandler
 		$this->setView($app['view']);
 	}
 
+	/**
+	 * Inject the config instance.
+	 *
+	 * @param $config
+	 */
 	public function setConfig($config)
 	{
 		$pkg = $this->package . '::';
@@ -97,26 +107,51 @@ class ErrorHandler
 		$this->dateFormat = $this->config->get($pkg.'date_format') ?: 'Y-m-d H:i:s e';
 	}
 
+	/**
+	 * Inject the mailer instance.
+	 *
+	 * @param $mailer
+	 */
 	public function setMailer($mailer)
 	{
 		$this->mailer = $mailer;
 	}
 
+	/**
+	 * Inject the logger instance.
+	 *
+	 * @param $logger
+	 */
 	public function setLogger($logger)
 	{
 		$this->logger = $logger;
 	}
 
+	/**
+	 * Inject the request instance.
+	 *
+	 * @param $request
+	 */
 	public function setRequest($request)
 	{
 		$this->request = $request;
 	}
 
+	/**
+	 * Inject the router instance.
+	 *
+	 * @param $router
+	 */
 	public function setRouter($router)
 	{
 		$this->router = $router;
 	}
 
+	/**
+	 * Inject the view instance.
+	 *
+	 * @param $view
+	 */
 	public function setView($view)
 	{
 		$this->view = $view;
@@ -200,10 +235,7 @@ class ErrorHandler
 
 		$this->logger->warning("404 for URL $url -- Referer: $referer");
 
-		// if debug = true, don't return to show the default whoops error page
-		if ($this->config->get('app.debug') == false) {
-			return $this->view->make($this->missingView);
-		}
+		return $this->view->make($this->missingView);
 	}
 
 	/**
