@@ -101,7 +101,9 @@ class ErrorHandler
 		$this->devEmail = $this->config->get($pkg.'dev_email');
 		$this->forceEmail = $this->config->get($pkg.'force_email');
 		$this->emailView = $this->config->get($pkg.'email_view') ?: $pkg.'email';
+		$this->plainEmailView = $this->config->get($pkg.'email_view_plain') ?: $pkg.'error_email_plain';
 		$this->alertEmailView = $this->config->get($pkg.'alert_email_view') ?: $pkg.'alert_email';
+		$this->plainAlertEmailView = $this->config->get($pkg.'alert_email_view_plain') ?: $pkg.'alert_email_plain';
 		$this->exceptionView = $this->config->get($pkg.'exception_view') ?: $pkg.'generic';
 		$this->missingView = $this->config->get($pkg.'missing_view') ?: $pkg.'missing';
 		$this->dateFormat = $this->config->get($pkg.'date_format') ?: 'Y-m-d H:i:s e';
@@ -208,7 +210,7 @@ class ErrorHandler
 			$subject = $event ? 'Error report - event' : 'Error report - uncaught exception';
 			$subject .= ' - '.$this->request->root();
 
-			$this->mailer->send($this->emailView, $mailData, function($msg) use($devEmail, $subject) {
+			$this->mailer->send(array($this->emailView, $this->plainEmailView), $mailData, function($msg) use($devEmail, $subject) {
 				$msg->to($devEmail)->subject($subject);
 			});
 		}
@@ -268,7 +270,7 @@ class ErrorHandler
 		$subject = 'Alert logged';
 		$subject .= ' - '.$this->request->root();
 
-		$this->mailer->send($this->alertEmailView, $mailData, function($msg) use($devEmail, $subject) {
+		$this->mailer->send(array($this->alertEmailView, $this->plainAlertEmailView), $mailData, function($msg) use($devEmail, $subject) {
 			$msg->to($devEmail)->subject($subject);
 		});
 	}

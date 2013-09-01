@@ -16,9 +16,11 @@ return array(
 
 	// The error handler email view. Leave as null for default
 	'email_view' => null,
+	'email_view_plain' => null,
 
 	// The alert log handler email view. Leave as null for default
 	'alert_email_view' => null,
+	'alert_email_view_plain' => null,
 
 	// The view for generic errors (uncaught exceptions). Leave as null for default
 	'error_view' => null,
