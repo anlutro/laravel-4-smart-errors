@@ -73,6 +73,11 @@ class ErrorHandler
 		$this->package = $package;
 	}
 
+	/**
+	 * Inject the Laravel application to easily inject all instances.
+	 *
+	 * @param Illuminate\Foundation\Application $app
+	 */
 	public function setApplication($app)
 	{
 		$this->setConfig($app['config']);
@@ -83,6 +88,11 @@ class ErrorHandler
 		$this->setView($app['view']);
 	}
 
+	/**
+	 * Inject the config instance.
+	 *
+	 * @param $config
+	 */
 	public function setConfig($config)
 	{
 		$pkg = $this->package . '::';
@@ -91,32 +101,59 @@ class ErrorHandler
 		$this->devEmail = $this->config->get($pkg.'dev_email');
 		$this->forceEmail = $this->config->get($pkg.'force_email');
 		$this->emailView = $this->config->get($pkg.'email_view') ?: $pkg.'email';
+		$this->plainEmailView = $this->config->get($pkg.'email_view_plain') ?: $pkg.'error_email_plain';
 		$this->alertEmailView = $this->config->get($pkg.'alert_email_view') ?: $pkg.'alert_email';
+		$this->plainAlertEmailView = $this->config->get($pkg.'alert_email_view_plain') ?: $pkg.'alert_email_plain';
 		$this->exceptionView = $this->config->get($pkg.'exception_view') ?: $pkg.'generic';
 		$this->missingView = $this->config->get($pkg.'missing_view') ?: $pkg.'missing';
 		$this->dateFormat = $this->config->get($pkg.'date_format') ?: 'Y-m-d H:i:s e';
 	}
 
+	/**
+	 * Inject the mailer instance.
+	 *
+	 * @param $mailer
+	 */
 	public function setMailer($mailer)
 	{
 		$this->mailer = $mailer;
 	}
 
+	/**
+	 * Inject the logger instance.
+	 *
+	 * @param $logger
+	 */
 	public function setLogger($logger)
 	{
 		$this->logger = $logger;
 	}
 
+	/**
+	 * Inject the request instance.
+	 *
+	 * @param $request
+	 */
 	public function setRequest($request)
 	{
 		$this->request = $request;
 	}
 
+	/**
+	 * Inject the router instance.
+	 *
+	 * @param $router
+	 */
 	public function setRouter($router)
 	{
 		$this->router = $router;
 	}
 
+	/**
+	 * Inject the view instance.
+	 *
+	 * @param $view
+	 */
 	public function setView($view)
 	{
 		$this->view = $view;
@@ -173,7 +210,7 @@ class ErrorHandler
 			$subject = $event ? 'Error report - event' : 'Error report - uncaught exception';
 			$subject .= ' - '.$this->request->root();
 
-			$this->mailer->send($this->emailView, $mailData, function($msg) use($devEmail, $subject) {
+			$this->mailer->send(array($this->emailView, $this->plainEmailView), $mailData, function($msg) use($devEmail, $subject) {
 				$msg->to($devEmail)->subject($subject);
 			});
 		}
@@ -200,10 +237,7 @@ class ErrorHandler
 
 		$this->logger->warning("404 for URL $url -- Referer: $referer");
 
-		// if debug = true, don't return to show the default whoops error page
-		if ($this->config->get('app.debug') == false) {
-			return $this->view->make($this->missingView);
-		}
+		return $this->view->make($this->missingView);
 	}
 
 	/**
@@ -236,7 +270,7 @@ class ErrorHandler
 		$subject = 'Alert logged';
 		$subject .= ' - '.$this->request->root();
 
-		$this->mailer->send($this->alertEmailView, $mailData, function($msg) use($devEmail, $subject) {
+		$this->mailer->send(array($this->alertEmailView, $this->plainAlertEmailView), $mailData, function($msg) use($devEmail, $subject) {
 			$msg->to($devEmail)->subject($subject);
 		});
 	}

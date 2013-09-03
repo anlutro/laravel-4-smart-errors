@@ -65,7 +65,10 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 
 		// register the 404 handler
 		$this->app->missing(function($exception) use ($app) {
-			return new Response($app['smarterror']->handleMissing($exception), 404);
+			// if debug = true, don't return to show the default whoops error page
+			if ($app['config']->get('app.debug') == false) {
+				return new Response($app['smarterror']->handleMissing($exception), 404);
+			}
 		});
 
 		// allow our event handler to be triggered via events

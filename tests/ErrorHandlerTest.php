@@ -116,13 +116,16 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$self = $this;
 
 		$this->mailer->shouldReceive('send')->once()
-			->with('anlutro/l4-smart-errors::email', m::on(function($mailData) use($self, $exception, $url, $route, $input) {
-				$self->assertContains($exception, $mailData);
-				$self->assertContains($url, $mailData);
-				$self->assertContains($route, $mailData);
-				$self->assertContains($input, $mailData);
-				return true;
-			}), m::on(function($closure) use ($root) {
+			->with(
+				array('anlutro/l4-smart-errors::email', 'anlutro/l4-smart-errors::error_email_plain'),
+				m::on(function($mailData) use($self, $exception, $url, $route, $input) {
+					$self->assertContains($exception, $mailData);
+					$self->assertContains($url, $mailData);
+					$self->assertContains($route, $mailData);
+					$self->assertContains($input, $mailData);
+					return true;
+				}
+			), m::on(function($closure) use ($root) {
 				$message = m::mock('message');
 				$message->shouldReceive('to')
 					->with('test@example.com')
@@ -159,22 +162,6 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->handler->handleMissing($exception);
 	}
 
-	public function testMissingHandlerWhenDebugTrue()
-	{
-		$exception = new Exception('test');
-		$this->config->set('app.debug', true);
-
-		$this->request->shouldReceive('fullUrl')
-			->andReturn('url');
-		$this->request->shouldReceive('header')
-			->with('referer')
-			->andReturn('referer');
-
-		$this->logger->shouldReceive('warning')->once();
-
-		$this->handler->handleMissing($exception);
-	}
-
 	public function testAlertHandlerDoesNothingOnDebugTrue()
 	{
 		$this->config->set('app.debug', true);
@@ -191,11 +178,35 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 		$this->request->shouldReceive('fullUrl')
 			->andReturn('url');
+
 		$this->request->shouldReceive('root')
 			->andReturn('root');
 
-		$this->mailer->shouldReceive('send')->once();
+		// php 5.3 hack
+		$self = $this;
 
-		$this->handler->handleAlert('test', array());
+		$this->mailer->shouldReceive('send')->once()
+			->with(
+				array('anlutro/l4-smart-errors::alert_email', 'anlutro/l4-smart-errors::alert_email_plain'),
+				m::on(function($data) use($self) {
+					$self->assertContains('action', $data);
+					$self->assertContains('url', $data);
+					$self->assertContains('test', $data);
+					$self->assertContains(array('key' => 'val'), $data);
+					return true;
+				}),
+				m::on(function($closure) {
+					$message = m::mock();
+					$message->shouldReceive('to')
+						->with('test@example.com')
+						->andReturn(m::self());
+					$message->shouldReceive('subject')
+						->with('Alert logged - root');
+					$closure($message);
+					return true;
+				})
+			);
+
+		$this->handler->handleAlert('test', array('key' => 'val'));
 	}
 }
