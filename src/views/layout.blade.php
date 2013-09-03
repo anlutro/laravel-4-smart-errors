@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>@lang('anlutro\l4-smart-errors::error.genericErrorTitle')</title>
+	<title>@lang('anlutro/l4-smart-errors::error.genericErrorTitle')</title>
 	<style>
 * {
 	font-family: sans-serif;
