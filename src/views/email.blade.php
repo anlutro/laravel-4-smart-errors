@@ -17,9 +17,7 @@
 </p>
 
 <p><b>Stack trace</b></p>
-<p><pre style="white-space:pre-wrap;">
-	{{ nl2br($exception->getTraceAsString()) }}
-</pre></p>
+<p><pre style="white-space:pre-wrap;">{{ nl2br($exception->getTraceAsString()) }}</pre></p>
 
 @if ($previous = $exception->getPrevious())
 <p>
