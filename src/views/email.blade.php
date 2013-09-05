@@ -1,29 +1,36 @@
 <p>
 	Time: {{ $time }}<br>
 	URL: {{ $url }}<br>
-	Route: {{ $route }}
+	Route: {{ $route }}<br>
+	Client: {{ $client }}
 </p>
 
 <p>
-	Error message: {{ $exception->getMessage() }}
-	@if ($exception->getCode() > 0)
-	 - code: {{ $exception->getCode() }}
+	{{ get_class($exception) }}<br>
+	@if ($exception->getMessage())
+	Exception message: {{ $exception->getMessage() }}<br>
 	@endif
-	<br>In {{ $exception->getFile() }} on line {{ $exception->getLine() }}
+	@if ($exception->getCode() > 0)
+	Exception code: {{ $exception->getCode() }}<br>
+	@endif
+	In {{ $exception->getFile() }} on line {{ $exception->getLine() }}
 </p>
 
-<p>
-	<b>Stack trace</b><br>
+<p><b>Stack trace</b></p>
+<p><pre style="white-space:pre-wrap;">
 	{{ nl2br($exception->getTraceAsString()) }}
-</p>
+</pre></p>
 
 @if ($previous = $exception->getPrevious())
 <p>
-	<b>Previous exception:</b> {{ $previous->getMessage() }}
-	@if ($previous->getCode() > 0)
-	 - code: {{ $previous->getCode() }}
+	<b>Previous exception:</b> {{ get_class($previous) }}
+	@if ($previous->getMessage())
+	Exception message: {{ $previous->getMessage() }}<br>
 	@endif
-	<br>In {{ $previous->getFile() }} on line {{ $previous->getLine() }}
+	@if ($previous->getCode() > 0)
+	Exception code: {{ $previous->getCode() }}<br>
+	@endif
+	In {{ $previous->getFile() }} on line {{ $previous->getLine() }}
 </p>
 @endif
 

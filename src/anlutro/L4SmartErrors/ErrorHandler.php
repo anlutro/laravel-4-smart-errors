@@ -104,7 +104,7 @@ class ErrorHandler
 		$this->plainEmailView = $this->config->get($pkg.'email_view_plain') ?: $pkg.'error_email_plain';
 		$this->alertEmailView = $this->config->get($pkg.'alert_email_view') ?: $pkg.'alert_email';
 		$this->plainAlertEmailView = $this->config->get($pkg.'alert_email_view_plain') ?: $pkg.'alert_email_plain';
-		$this->exceptionView = $this->config->get($pkg.'exception_view') ?: $pkg.'generic';
+		$this->exceptionView = $this->config->get($pkg.'error_view') ?: $pkg.'generic';
 		$this->missingView = $this->config->get($pkg.'missing_view') ?: $pkg.'missing';
 		$this->dateFormat = $this->config->get($pkg.'date_format') ?: 'Y-m-d H:i:s e';
 	}
@@ -173,6 +173,7 @@ class ErrorHandler
 	{
 		$route = $this->findRoute();
 		$url = $this->request->fullUrl();
+		$client = $this->request->getClientIp();
 
 		// log the exception
 		if ($event) {
@@ -181,7 +182,7 @@ class ErrorHandler
 			$logstr = 'Uncaught Exception';
 		}
 
-		$logstr .= " (handled by L4SmartErrors)\nURL: $url -- Route: $route\n";
+		$logstr .= " (handled by L4SmartErrors)\nURL: $url -- Route: $route -- Client: $client\n";
 		$logstr .= $exception;
 
 		// get any input and log it
@@ -202,6 +203,7 @@ class ErrorHandler
 				'exception' => $exception,
 				'url'       => $url,
 				'route'     => $route,
+				'client'    => $client,
 				'input'     => $input,
 				'time'      => date($this->dateFormat),
 			);

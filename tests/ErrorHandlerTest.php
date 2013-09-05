@@ -52,6 +52,8 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 			->andReturn('url');
 		$this->request->shouldReceive('all')
 			->andReturn(array());
+		$this->request->shouldReceive('getClientIp')
+			->andReturn('client');
 
 		// ugly php 5.3 hack
 		$self = $this;
@@ -60,6 +62,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 			->with(m::on(function($logged) use($self) {
 				$self->assertContains('Route: action', $logged);
 				$self->assertContains('URL: url', $logged);
+				$self->assertContains('Client: client', $logged);
 				return true;
 			}));
 
@@ -70,6 +73,7 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 	{
 		$exception = new Exception('test');
 		$input = array('key' => 'val');
+		$client = '1.2.3.4';
 		$this->config->set('app.debug', true);
 
 		$this->router->shouldReceive('currentRouteAction')
@@ -79,6 +83,8 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 			->andReturn('url');
 		$this->request->shouldReceive('all')
 			->andReturn($input);
+		$this->request->shouldReceive('getClientIp')
+			->andReturn($client);
 
 		// ugly php 5.3 hack
 		$self = $this;
@@ -94,12 +100,13 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 
 	public function testRealExceptionHandler()
 	{
+		$this->config->set('app.debug', false);
 		$exception = new Exception('test');
 		$route = 'action';
 		$url = 'url';
 		$root = 'root';
 		$input = array('test' => 'input');
-		$this->config->set('app.debug', false);
+		$client = '1.2.3.4';
 
 		$this->router->shouldReceive('currentRouteAction')
 			->andReturn($route);
@@ -109,6 +116,8 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 			->andReturn($root);
 		$this->request->shouldReceive('all')
 			->andReturn($input);
+		$this->request->shouldReceive('getClientIp')
+			->andReturn($client);
 
 		$this->logger->shouldReceive('error')->once();
 
@@ -118,11 +127,12 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->mailer->shouldReceive('send')->once()
 			->with(
 				array('anlutro/l4-smart-errors::email', 'anlutro/l4-smart-errors::error_email_plain'),
-				m::on(function($mailData) use($self, $exception, $url, $route, $input) {
+				m::on(function($mailData) use($self, $exception, $url, $route, $input, $client) {
 					$self->assertContains($exception, $mailData);
 					$self->assertContains($url, $mailData);
 					$self->assertContains($route, $mailData);
 					$self->assertContains($input, $mailData);
+					$self->assertContains($client, $mailData);
 					return true;
 				}
 			), m::on(function($closure) use ($root) {
@@ -140,8 +150,44 @@ class ExceptionHandlingTest extends PHPUnit_Framework_TestCase
 		$this->view->shouldReceive('make')->once();
 
 		$this->handler->handleException($exception);
+	}
 
-		
+	public function testForceMail()
+	{
+		$this->config->set('app.debug', false);
+		$this->config->set('mail.pretend', true);
+		$this->config->set('anlutro/l4-smart-errors::force_email', true);
+		$this->handler->setConfig($this->config);
+
+		$exception = new Exception('test');
+		$route = 'action';
+		$url = 'url';
+		$root = 'root';
+		$input = array('test' => 'input');
+		$client = '1.2.3.4';
+
+		$this->router->shouldReceive('currentRouteAction')
+			->andReturn($route);
+		$this->request->shouldReceive('fullUrl')
+			->andReturn($url);
+		$this->request->shouldReceive('root')
+			->andReturn($root);
+		$this->request->shouldReceive('all')
+			->andReturn($input);
+		$this->request->shouldReceive('getClientIp')
+			->andReturn($client);
+
+		$this->logger->shouldReceive('error')->once();
+
+		$this->mailer->shouldReceive('send')->once();
+
+		$this->view->shouldReceive('make')->once();
+
+		$this->assertTrue($this->config->get('mail.pretend'));
+
+		$this->handler->handleException($exception);
+
+		$this->assertFalse($this->config->get('mail.pretend'));
 	}
 
 	public function testMissingHandler()
