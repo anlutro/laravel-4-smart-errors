@@ -28,7 +28,7 @@ If you want to mail yourself on an error but not dump the user to a generic erro
 
 	try {
 		// something
-	} catch (SpecificExcpetion $e) {
+	} catch (SpecificException $e) {
 		Event::fire('smarterror', array($e));
 		// display nice error message
 	}
