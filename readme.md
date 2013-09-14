@@ -10,7 +10,7 @@ Small system for showing a very generic error message to your end-users while se
 Add the following to your composer.json before running `composer update`:
 
 	require: {
-		"anlutro/l4-smart-errors": "dev-master"
+		"anlutro/l4-smart-errors": "1.*"
 	}
 
 Alternatively, run `composer require anlutro/l4-smart-errors`, which will automatically update your composer.json and download the package.
