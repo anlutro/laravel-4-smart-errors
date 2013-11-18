@@ -9,26 +9,26 @@
 
 return array(
 	// The email the error reports will be sent to.
-	'dev_email' => '',
+	'dev-email' => '',
 
 	// send an email even if mail.pretend == true
-	'force_email' => false,
+	'force-email' => false,
 
 	// The error handler email view. Leave as null for default
-	'email_view' => null,
-	'email_view_plain' => null,
+	'error-email-view' => null,
+	'error-email-view-plain' => null,
 
 	// The alert log handler email view. Leave as null for default
-	'alert_email_view' => null,
-	'alert_email_view_plain' => null,
+	'alert-email-view' => null,
+	'alert-email-view-plain' => null,
 
 	// The view for generic errors (uncaught exceptions). Leave as null for default
-	'error_view' => null,
+	'error-view' => null,
 
 	// The view for 404 errors. Leave as null for default
-	'missing_view' => null,
+	'missing-view' => null,
 
 	// The PHP date() format that should be used. Leave as null for default
 	// Default: Y-m-d H:i:s e
-	'date_format' => null,
+	'date-format' => null,
 );
