@@ -115,7 +115,7 @@ class ErrorHandler
 	 * Handle an alert-level logging event.
 	 *
 	 * @param  string $message
-	 * @param  array $context
+	 * @param  array  $context
 	 *
 	 * @return void
 	 */
