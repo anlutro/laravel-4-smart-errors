@@ -99,7 +99,7 @@ class ErrorHandler
 
 		if (Config::get('app.debug') === false) {
 			$view = Config::get('smarterror::missing-view') ?: 'smarterror::missing';
-			return Response::view($view, 404);
+			return Response::view($view, array(), 404);
 		}
 	}
 
