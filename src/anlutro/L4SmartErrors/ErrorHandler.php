@@ -11,10 +11,10 @@ namespace anlutro\L4SmartErrors;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mailer;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Router;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 
 /**
@@ -70,14 +70,14 @@ class ErrorHandler
 			$plainView = Config::get('smarterror::error-email-view-plain', 'smarterror::error-email-plain');
 
 			Mail::send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
-				$msg->to($devEmail)->subject($subject);
+				$msg->to($email)->subject($subject);
 			});
 		}
 
 		// if debug is false, show the friendly error message
 		if (Config::get('app.debug') === false) {
-			$view = Config::get('smarterror::error-view', 'smarterror::generic');
-			return Response::view($view, 500);
+			$view = Config::get('smarterror::error-view') ?: 'smarterror::generic';
+			return Response::view($view, array(), 500);
 		}
 
 		// if debug is true, do nothing and the default exception whoops page is shown
@@ -98,7 +98,7 @@ class ErrorHandler
 		Log::warning("404 for URL $url -- Referer: $referer");
 
 		if (Config::get('app.debug') === false) {
-			$view = Config::get('smarterror::missing-view', 'smarterror::missing');
+			$view = Config::get('smarterror::missing-view') ?: 'smarterror::missing';
 			return Response::view($view, 404);
 		}
 	}
@@ -134,11 +134,11 @@ class ErrorHandler
 		);
 
 		$subject = 'Alert logged - ' . Request::root();
-		$htmlView = Config::get('smarterror::alert-email-view', 'smarterror::alert-email');
-		$plainView = Config::get('smarterror::alert-email-view-plain', 'smarterror::alert-email-plain');
+		$htmlView = Config::get('smarterror::alert-email-view') ?: 'smarterror::alert-email';
+		$plainView = Config::get('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
 
 		Mail::send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
-			$msg->to($devEmail)->subject($subject);
+			$msg->to($email)->subject($subject);
 		});
 	}
 
@@ -149,12 +149,12 @@ class ErrorHandler
 	 */
 	protected function findRoute()
 	{
-		if ($route = Route::currentRouteAction()) {
-			return $route;
-		} elseif ($route = Route::currentRouteName()) {
-			return $route;
+		$route = Route::current();
+
+		if (($name = $route->getName()) || ($name = $route->getActionName())) {
+			return $name;
 		} else {
-			return 'NA (probably a closure)';
+			return 'NA (probably a console command)';
 		}
 	}
 }

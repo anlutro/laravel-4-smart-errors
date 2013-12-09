@@ -1,14 +1,14 @@
-@extends('anlutro/l4-smart-errors::layout')
+@extends('smarterror::layout')
 
-@section('title', Lang::get('anlutro/l4-smart-errors::error.genericErrorTitle'))
+@section('title', Lang::get('smarterror::error.genericErrorTitle'))
 
 @section('content')
 
-	<p>@lang('anlutro/l4-smart-errors::error.genericErrorParagraph1')</p>
-	<p>@lang('anlutro/l4-smart-errors::error.genericErrorParagraph2')</p>
+	<p>@lang('smarterror::error.genericErrorParagraph1')</p>
+	<p>@lang('smarterror::error.genericErrorParagraph2')</p>
 	<p style="text-align:center;">
-		{{ HTML::link(Request::header('referer'), Lang::get('anlutro/l4-smart-errors::error.backLinkTitle')) }} - 
-		{{ HTML::link('/', Lang::get('anlutro/l4-smart-errors::error.frontpageLinkTitle')) }}
+		{{ HTML::link(Request::header('referer'), Lang::get('smarterror::error.backLinkTitle')) }} - 
+		{{ HTML::link('/', Lang::get('smarterror::error.frontpageLinkTitle')) }}
 	</p>
 
 @stop

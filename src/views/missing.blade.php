@@ -1,13 +1,13 @@
-@extends('anlutro/l4-smart-errors::layout')
+@extends('smarterror::layout')
 
-@section('title', Lang::get('anlutro/l4-smart-errors::error.missingTitle'))
+@section('title', Lang::get('smarterror::error.missingTitle'))
 
 @section('content')
 
-	<p>@lang('anlutro/l4-smart-errors::error.missingText')</p>
+	<p>@lang('smarterror::error.missingText')</p>
 	<p>
-		{{ HTML::link(Request::header('referer'), Lang::get('anlutro/l4-smart-errors::error.backLinkTitle')) }} - 
-		{{ HTML::link('/', Lang::get('anlutro/l4-smart-errors::error.frontpageLinkTitle')) }}
+		{{ HTML::link(Request::header('referer'), Lang::get('smarterror::error.backLinkTitle')) }} - 
+		{{ HTML::link('/', Lang::get('smarterror::error.frontpageLinkTitle')) }}
 	</p>
 
 @stop

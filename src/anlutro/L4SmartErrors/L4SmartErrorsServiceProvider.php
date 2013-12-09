@@ -18,7 +18,7 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	 *
 	 * @var bool
 	 */
-	protected $defer = true;
+	protected $defer = false;
 
 	/**
 	 * Register the service provider.
@@ -28,7 +28,7 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	public function register()
 	{
 		$this->app->bindShared('smarterror', function($app) {
-			return new NewErrorHandler;
+			return new ErrorHandler;
 		});
 	}
 
