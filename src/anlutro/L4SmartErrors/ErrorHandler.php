@@ -159,10 +159,12 @@ class ErrorHandler
 	{
 		$route = Route::current();
 
-		if (($name = $route->getName()) || ($name = $route->getActionName())) {
+		if (!$route) {
+			return 'NA (probably a console command)';
+		} elseif (($name = $route->getName()) || ($name = $route->getActionName())) {
 			return $name;
 		} else {
-			return 'NA (probably a console command)';
+			return 'NA (unknown route)';
 		}
 	}
 
