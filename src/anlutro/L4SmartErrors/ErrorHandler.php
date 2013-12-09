@@ -76,8 +76,12 @@ class ErrorHandler
 
 		// if debug is false, show the friendly error message
 		if (Config::get('app.debug') === false) {
-			$view = Config::get('smarterror::error-view') ?: 'smarterror::generic';
-			return Response::view($view, array(), 500);
+			if ($this->json()) {
+				return Response::json(['errors' => [Lang::get('smarterror::genericErrorTitle')]], 500);
+			} else {
+				$view = Config::get('smarterror::error-view') ?: 'smarterror::generic';
+				return Response::view($view, array(), 500);
+			}
 		}
 
 		// if debug is true, do nothing and the default exception whoops page is shown
@@ -98,8 +102,12 @@ class ErrorHandler
 		Log::warning("404 for URL $url -- Referer: $referer");
 
 		if (Config::get('app.debug') === false) {
-			$view = Config::get('smarterror::missing-view') ?: 'smarterror::missing';
-			return Response::view($view, array(), 404);
+			if ($this->json()) {
+				return Response::json(['errors' => [Lang::get('smarterror::missingTitle')]], 404);
+			} else {
+				$view = Config::get('smarterror::missing-view') ?: 'smarterror::missing';
+				return Response::view($view, array(), 404);
+			}
 		}
 	}
 
@@ -156,5 +164,15 @@ class ErrorHandler
 		} else {
 			return 'NA (probably a console command)';
 		}
+	}
+
+	/**
+	 * Determine whether a JSON response should be returned.
+	 *
+	 * @return bool
+	 */
+	protected function json()
+	{
+		return Request::wantsJson() || Request::isJson() || Request::ajax();
 	}
 }
