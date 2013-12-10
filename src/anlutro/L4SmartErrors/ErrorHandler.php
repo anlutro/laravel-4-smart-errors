@@ -54,7 +54,7 @@ class ErrorHandler
 				Config::set('mail.pretend', false);
 			}
 
-			$timeFormat = Config::get('smarterror::date-format', 'Y-m-d H:i:s');
+			$timeFormat = Config::get('smarterror::date-format') ?: 'Y-m-d H:i:s';
 
 			$mailData = array(
 				'exception' => $exception,
@@ -66,8 +66,8 @@ class ErrorHandler
 			);
 
 			$subject = 'Error report - uncaught exception - ' . Request::root();
-			$htmlView = Config::get('smarterror::error-email-view', 'smarterror::error-email');
-			$plainView = Config::get('smarterror::error-email-view-plain', 'smarterror::error-email-plain');
+			$htmlView = Config::get('smarterror::error-email-view') ?: 'smarterror::error-email';
+			$plainView = Config::get('smarterror::error-email-view-plain') ?: 'smarterror::error-email-plain';
 
 			Mail::send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
 				$msg->to($email)->subject($subject);
@@ -131,7 +131,7 @@ class ErrorHandler
 			Config::set('mail.pretend', false);
 		}
 
-		$timeFormat = Config::get('smarterror::date-format', 'Y-m-d H:i:s');
+		$timeFormat = Config::get('smarterror::date-format') ?: 'Y-m-d H:i:s';
 
 		$mailData = array(
 			'logmsg'    => $message,
