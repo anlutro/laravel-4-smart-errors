@@ -9,20 +9,21 @@
 
 namespace anlutro\L4SmartErrors;
 
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\View;
+use Illuminate\Foundation\Application;
 
 /**
  * The class that handles the errors. Obviously
  */
 class ErrorHandler
 {
+	protected $app;
+
+	public function __construct(Application $app)
+	{
+		$this->app = $app;
+	}
+
 	/**
 	 * Handle an uncaught exception. Returns a view if config.app.debug == false,
 	 * otherwise returns void to let the default L4 error handler do its job.
@@ -34,58 +35,96 @@ class ErrorHandler
 	 */
 	public function handleException($exception, $code = null)
 	{
-		$email = Config::get('smarterror::dev-email');
-		$route = $this->findRoute();
-		$url = Request::fullUrl();
-		$client = Request::getClientIp();
+		$env = $this->app->environment();
 
-		$logstr = "Uncaught Exception (handled by L4SmartErrors)\nURL: $url -- Route: $route -- Client: $client\n" . $exception;
+		$logstr = "[$env] Uncaught Exception (handled by L4SmartErrors)\n";
 
-		// get any input and log it
-		$input = Request::all();
+		$infoPresenter = $this->makeInfoPresenter()->setHtml(true);
+		$logstr .= $infoPresenter->renderCompact();
+
+		$input = $this->app['request']->all();
 		if (!empty($input)) {
-			$logstr .= 'Input: ' . json_encode($input);
+			$inputStr = with(new InputPresenter($input))->renderCompact();
+			$logstr .= 'Input: ' . $inputStr;
 		}
 
-		Log::error($logstr);
+		$this->app['log']->error($logstr);
 
-		// if debug is false and dev_email is set, send the mail
-		if (Config::get('app.debug') === false && $email) {
-			if (Config::get('smarterror::force-email') !== false) {
-				Config::set('mail.pretend', false);
+		$email = $this->app['config']->get('smarterror::dev-email');
+
+		// if debug is false and dev-email is set, send the mail
+		if ($this->app['config']->get('app.debug') === false && $email) {
+			if ($this->app['config']->get('smarterror::force-email') !== false) {
+				$this->app['config']->set('mail.pretend', false);
 			}
 
-			$timeFormat = Config::get('smarterror::date-format') ?: 'Y-m-d H:i:s';
+			$ePresenter = new ExceptionPresenter($exception);
+			if ($this->app['config']->get('smarterror::expand-stack-trace')) {
+				$ePresenter->setDescriptive(true);
+			}
+
+			$inputPresenter = new InputPresenter($input);
+			$inputPresenter->setHtml(true);
+
+			if ($this->app['config']->get('smarterror::include-query-log')) {
+				$queryLog = $this->app['db']->getQueryLog();
+				$queryLog = new QueryLogPresenter($queryLog);
+				$queryLog->setHtml(true);
+			} else {
+				$queryLog = false;
+			}
 
 			$mailData = array(
-				'exception' => $exception,
-				'url'       => $url,
-				'route'     => $route,
-				'client'    => $client,
-				'input'     => $input,
-				'time'      => date($timeFormat),
+				'info'      => $infoPresenter,
+				'exception' => $ePresenter,
+				'input'     => $inputPresenter,
+				'queryLog'  => $queryLog,
 			);
 
-			$subject = 'Error report - uncaught exception - ' . Request::root();
-			$htmlView = Config::get('smarterror::error-email-view') ?: 'smarterror::error-email';
-			$plainView = Config::get('smarterror::error-email-view-plain') ?: 'smarterror::error-email-plain';
+			$subject = 'Error report - uncaught exception - ' . $this->app['request']->root() ?: $this->app['config']->get('app.url');
+			$htmlView = $this->app['config']->get('smarterror::error-email-view') ?: 'smarterror::error-email';
+			$plainView = $this->app['config']->get('smarterror::error-email-view-plain') ?: 'smarterror::error-email-plain';
 
-			Mail::send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
+			$this->app['mailer']->send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
 				$msg->to($email)->subject($subject);
 			});
 		}
 
 		// if debug is false, show the friendly error message
-		if (Config::get('app.debug') === false) {
-			if ($this->json()) {
+		if ($this->app['config']->get('app.debug') === false) {
+			if ($this->requestIsJson()) {
 				return Response::json(['errors' => [Lang::get('smarterror::genericErrorTitle')]], 500);
 			} else {
-				$view = Config::get('smarterror::error-view') ?: 'smarterror::generic';
+				$view = $this->app['config']->get('smarterror::error-view') ?: 'smarterror::generic';
 				return Response::view($view, array(), 500);
 			}
 		}
 
 		// if debug is true, do nothing and the default exception whoops page is shown
+	}
+
+	protected function makeInfoPresenter()
+	{
+		$console = $this->app->runningInConsole();
+
+		if ($console) {
+			$data = array(
+				'hostname' => gethostname(),
+			);
+		} else {
+			$data = array(
+				'url' => $this->app['request']->fullUrl(),
+				'route' => $this->findRoute(),
+				'client' => $this->app['request']->getClientIp(),
+			);
+		}
+
+		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s';
+		$data['time'] = date($timeFormat);
+
+		$presenter = new AppInfoPresenter($console, $data);
+
+		return $presenter;
 	}
 
 	/**
@@ -97,16 +136,17 @@ class ErrorHandler
 	 */
 	public function handleMissing($exception)
 	{
-		$url = Request::fullUrl();
-		$referer = Request::header('referer');
+		$url = $this->app['request']->fullUrl();
+		$referer = $this->app['request']->header('referer');
 
-		Log::warning("404 for URL $url -- Referer: $referer");
+		$this->app['log']->warning("404 for URL $url -- Referer: $referer");
 
-		if (Config::get('app.debug') === false) {
-			if ($this->json()) {
-				return Response::json(['errors' => [Lang::get('smarterror::missingTitle')]], 404);
+		if ($this->app['config']->get('app.debug') === false) {
+			if ($this->requestIsJson()) {
+				$msg = $this->app['translator']->get('smarterror::missingTitle');
+				return Response::json(['errors' => [$msg]], 404);
 			} else {
-				$view = Config::get('smarterror::missing-view') ?: 'smarterror::missing';
+				$view = $this->app['config']->get('smarterror::missing-view') ?: 'smarterror::missing';
 				return Response::view($view, array(), 404);
 			}
 		}
@@ -122,31 +162,31 @@ class ErrorHandler
 	 */
 	public function handleAlert($message, $context)
 	{
-		$email = Config::get('smarterror::dev-email');
+		$email = $this->app['config']->get('smarterror::dev-email');
 
-		if (Config::get('app.debug') !== false || empty($email)) {
+		if ($this->app['config']->get('app.debug') !== false || empty($email)) {
 			return;
 		}
 
-		if (Config::get('smarterror::force-email') !== false) {
-			Config::set('mail.pretend', false);
+		if ($this->app['config']->get('smarterror::force-email') !== false) {
+			$this->app['config']->set('mail.pretend', false);
 		}
 
-		$timeFormat = Config::get('smarterror::date-format') ?: 'Y-m-d H:i:s';
+		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s';
 
 		$mailData = array(
 			'logmsg'    => $message,
 			'context'   => $context,
-			'url'       => Request::fullUrl(),
+			'url'       => $this->app['request']->fullUrl(),
 			'route'     => $this->findRoute(),
 			'time'      => date($timeFormat),
 		);
 
-		$subject = 'Alert logged - ' . Request::root();
-		$htmlView = Config::get('smarterror::alert-email-view') ?: 'smarterror::alert-email';
-		$plainView = Config::get('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
+		$subject = 'Alert logged - ' . $this->app['request']->root();
+		$htmlView = $this->app['config']->get('smarterror::alert-email-view') ?: 'smarterror::alert-email';
+		$plainView = $this->app['config']->get('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
 
-		Mail::send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
+		$this->app['mailer']->send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
 			$msg->to($email)->subject($subject);
 		});
 	}
@@ -158,7 +198,7 @@ class ErrorHandler
 	 */
 	protected function findRoute()
 	{
-		$route = Route::current();
+		$route = $this->app['router']->current();
 
 		if (!$route) {
 			return 'NA (probably a console command)';
@@ -174,8 +214,9 @@ class ErrorHandler
 	 *
 	 * @return bool
 	 */
-	protected function json()
+	protected function requestIsJson()
 	{
-		return Request::wantsJson() || Request::isJson() || Request::ajax();
+		$request = $this->app['request'];
+		return $request->wantsJson() || $request->isJson() || $request->ajax();
 	}
 }

@@ -11,16 +11,17 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0"
+        "php": ">=5.3.0",
+        "xethron/l4-to-string": "1.0.*",
+        "laravel/framework": "~4.1"
     },
     "require-dev": {
-        "anlutro/l4-config-mock": "dev-master",
-        "mockery/mockery": "dev-master"
+        "mockery/mockery": "dev-master@dev"
     },
     "autoload": {
         "psr-0": {
             "anlutro\\L4SmartErrors": "src/"
         }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "stable"
 }

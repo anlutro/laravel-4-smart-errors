@@ -31,4 +31,10 @@ return array(
 	// The PHP date() format that should be used. Leave as null for default
 	// Default: Y-m-d H:i:s e
 	'date-format' => null,
+
+	// whether to display more detailed information in stack traces.
+	'expand-stack-trace' => false,
+
+	// whether to include query logs in error reports.
+	'include-query-log' => false,
 );

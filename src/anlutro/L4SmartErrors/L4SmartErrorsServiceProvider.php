@@ -28,7 +28,7 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	public function register()
 	{
 		$this->app->bindShared('smarterror', function($app) {
-			return new ErrorHandler;
+			return new ErrorHandler($app);
 		});
 	}
 
