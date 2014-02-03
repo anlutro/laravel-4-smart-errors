@@ -112,6 +112,7 @@ class ErrorHandler
 		} else {
 			$data = array(
 				'url' => $this->app['request']->fullUrl(),
+				'method' => $this->app['request']->getMethod(),
 				'route' => $this->findRoute(),
 				'client' => $this->app['request']->getClientIp(),
 			);

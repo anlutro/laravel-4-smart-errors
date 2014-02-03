@@ -23,6 +23,7 @@ class AppInfoPresenter extends AbstractPresenter
 		} else {
 			$info[] = 'URL: ' . $this->info('url');
 			$info[] = 'Route: ' . $this->info('route');
+			$info[] = 'HTTP method: ' . $this->info('method');
 			$info[] = 'Client: ' . $this->info('client');
 		}
 
