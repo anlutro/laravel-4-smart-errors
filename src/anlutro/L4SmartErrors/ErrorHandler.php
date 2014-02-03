@@ -4,7 +4,7 @@
  *
  * @author    Andreas Lutro <anlutro@gmail.com>
  * @license   http://opensource.org/licenses/MIT
- * @package   Laravel 4 Smart Errors
+ * @package   l4-smart-errors
  */
 
 namespace anlutro\L4SmartErrors;
@@ -17,8 +17,14 @@ use Illuminate\Foundation\Application;
  */
 class ErrorHandler
 {
+	/**
+	 * @var Illuminate\Foundation\Application
+	 */
 	protected $app;
 
+	/**
+	 * @param Illuminate\Foundation\Application $app
+	 */
 	public function __construct(Application $app)
 	{
 		$this->app = $app;
@@ -31,7 +37,7 @@ class ErrorHandler
 	 * @param  Exception $exception
 	 * @param  integer   $code
 	 *
-	 * @return View|void
+	 * @return Illuminate\Http\Response|void
 	 */
 	public function handleException($exception, $code = null)
 	{
@@ -101,6 +107,11 @@ class ErrorHandler
 		// if debug is true, do nothing and the default exception whoops page is shown
 	}
 
+	/**
+	 * Make an application information presenter object.
+	 *
+	 * @return anlutro\L4SmartErrors\AppInfoPresenter
+	 */
 	protected function makeInfoPresenter()
 	{
 		$console = $this->app->runningInConsole();
@@ -131,7 +142,7 @@ class ErrorHandler
 	 *
 	 * @param  Exception $exception
 	 *
-	 * @return Response
+	 * @return Illuminate\Http\Response|void
 	 */
 	public function handleMissing($exception)
 	{

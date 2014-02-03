@@ -4,7 +4,7 @@
  *
  * @author    Andreas Lutro <anlutro@gmail.com>
  * @license   http://opensource.org/licenses/MIT
- * @package   Laravel 4 Smart Errors
+ * @package   l4-smart-errors
  */
 
 namespace anlutro\L4SmartErrors;
