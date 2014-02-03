@@ -11,13 +11,14 @@ abstract class AbstractPresenter
 		return $this;
 	}
 
-	public function renderVarDump($data)
+	public function renderVarDump($data, $toggle = null)
 	{
 		ob_start();
 
+		$html = $toggle === null ? $this->html : (bool) $toggle;
 		$xdebugHtml = extension_loaded('xdebug') && php_sapi_name() != 'cli';
 
-		if ($this->html === false || $xdebugHtml === true) {
+		if ($html === false || $xdebugHtml === true) {
 			var_dump($data);
 		} else {
 			echo '<pre style="white-space:pre-wrap;">';

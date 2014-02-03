@@ -15,6 +15,11 @@ class InputPresenter extends AbstractPresenter
 		return $this->renderVarDump($this->input);
 	}
 
+	public function renderHtml()
+	{
+		return $this->renderVarDump($this->input, true);
+	}
+
 	public function renderCompact()
 	{
 		return json_encode($this->input);

@@ -39,7 +39,7 @@ class ErrorHandler
 
 		$logstr = "[$env] Uncaught Exception (handled by L4SmartErrors)\n";
 
-		$infoPresenter = $this->makeInfoPresenter()->setHtml(true);
+		$infoPresenter = $this->makeInfoPresenter();
 		$logstr .= $infoPresenter->renderCompact();
 
 		$input = $this->app['request']->all();
@@ -64,12 +64,10 @@ class ErrorHandler
 			}
 
 			$inputPresenter = new InputPresenter($input);
-			$inputPresenter->setHtml(true);
 
 			if ($this->app['config']->get('smarterror::include-query-log')) {
 				$queryLog = $this->app['db']->getQueryLog();
 				$queryLog = new QueryLogPresenter($queryLog);
-				$queryLog->setHtml(true);
 			} else {
 				$queryLog = false;
 			}

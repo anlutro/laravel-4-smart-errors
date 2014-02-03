@@ -21,8 +21,7 @@ class InputPresenterTest extends PHPUnit_Framework_TestCase
 	public function testStringContainsPreTagWhenHtmlTrue()
 	{
 		$presenter = $this->makePresenter(array('foo' => 'bar'));
-		$presenter->setHtml(true);
-		$str = $presenter->render();
+		$str = $presenter->renderHtml();
 		$this->assertContains('<pre', $str);
 	}
 

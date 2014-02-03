@@ -1,5 +1,5 @@
 <p>
-	{{ $info }}
+	{{ $info->renderHtml() }}
 </p>
 
 <p>
@@ -18,11 +18,11 @@
 @if ($input)
 <p>
 	<b>Input</b><br>
-	<p>{{ $input }}</p>
+	<p>{{ $input->renderHtml() }}</p>
 </p>
 @endif
 
 @if ($queryLog)
 	<b>Query log</b><br>
-	{{ $queryLog }}
+	{{ $queryLog->renderHtml() }}
 @endif
