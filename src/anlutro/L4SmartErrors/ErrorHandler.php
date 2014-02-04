@@ -51,8 +51,10 @@ class ErrorHandler
 		$input = $this->app['request']->all();
 		if (!empty($input)) {
 			$inputStr = with(new InputPresenter($input))->renderCompact();
-			$logstr .= 'Input: ' . $inputStr;
+			$logstr .= "\nInput: " . $inputStr;
 		}
+
+		$logstr .= "\n" . $exception;
 
 		$this->app['log']->error($logstr);
 
