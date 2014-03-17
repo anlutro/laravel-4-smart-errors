@@ -29,10 +29,15 @@ class AppInfoPresenter extends AbstractPresenter
 		if ($this->console) {
 			$info[] = 'Hostname: ' . $this->info('hostname');
 		} else {
-			$info[] = 'URL: ' . $this->info('url');
-			$info[] = 'Route: ' . $this->info('route');
-			$info[] = 'HTTP method: ' . $this->info('method');
 			$info[] = 'Client: ' . $this->info('client');
+			$info[] = 'URL: ' . $this->info('url');
+			$info[] = 'HTTP method: ' . $this->info('method');
+			if ($this->info('route-action')) {
+				$info[] = 'Route action: ' . $this->info('route-action');
+			}
+			if ($this->info('route-name')) {
+				$info[] = 'Route name: ' . $this->info('route-name');
+			}
 		}
 
 		return $info;

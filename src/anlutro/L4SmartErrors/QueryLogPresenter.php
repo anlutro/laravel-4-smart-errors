@@ -23,6 +23,11 @@ class QueryLogPresenter extends AbstractPresenter
 		return $this->renderVarDump($this->queryLog);
 	}
 
+	public function renderHtml()
+	{
+		return $this->renderVarDump($this->queryLog, true);
+	}
+
 	public function __toString()
 	{
 		return $this->render();

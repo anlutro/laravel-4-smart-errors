@@ -123,10 +123,12 @@ class ErrorHandler
 				'hostname' => gethostname(),
 			);
 		} else {
+			list($routeAction, $routeName) = $this->findRouteNames();
 			$data = array(
 				'url' => $this->app['request']->fullUrl(),
 				'method' => $this->app['request']->getMethod(),
-				'route' => $this->findRoute(),
+				'route-name' => $routeName,
+				'route-action' => $routeAction,
 				'client' => $this->app['request']->getClientIp(),
 			);
 		}
@@ -186,11 +188,17 @@ class ErrorHandler
 
 		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s';
 
+		list($routeAction, $routeName) = $this->findRouteNames();
+		$route = $routeAction ?: $routeName;
+		if (!$routeAction && $routeName) {
+			$route .= ' / ' . $routeName;
+		}
+
 		$mailData = array(
 			'logmsg'    => $message,
 			'context'   => $context,
 			'url'       => $this->app['request']->fullUrl(),
-			'route'     => $this->findRoute(),
+			'route'     => $route,
 			'time'      => date($timeFormat),
 		);
 
@@ -208,16 +216,14 @@ class ErrorHandler
 	 *
 	 * @return string
 	 */
-	protected function findRoute()
+	protected function findRouteNames()
 	{
 		$route = $this->app['router']->current();
 
 		if (!$route) {
-			return 'NA (probably a console command)';
-		} elseif (($name = $route->getName()) || ($name = $route->getActionName())) {
-			return $name;
+			return array(null, null);
 		} else {
-			return 'NA (unknown route)';
+			return array($route->getActionName(), $route->getName());
 		}
 	}
 
