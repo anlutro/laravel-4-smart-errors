@@ -1,9 +1,7 @@
 {{ $info->render() }}
 
-{{ $exception->info }}
-
-Stack trace
-===========
+Exception stack trace
+=====================
 {{ $exception->trace }}
 
 @if ($exception->previous)

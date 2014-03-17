@@ -2,11 +2,7 @@
 	{{ $info->renderHtml() }}
 </p>
 
-<p>
-	<b>Exception thrown:</b> {{ nl2br($exception->info) }}
-</p>
-
-<p><b>Stack trace</b></p>
+<p><b>Exception stack trace</b></p>
 <p><pre style="white-space:pre-wrap;">{{ $exception->trace }}</pre></p>
 
 @if ($exception->previous)
