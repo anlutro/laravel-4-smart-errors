@@ -1,5 +1,5 @@
 # Laravel 4 Smart Errors
-[![Build Status](https://travis-ci.org/anlutro/laravel-4-smart-errors.png?branch=master)](https://travis-ci.org/anlutro/laravel-4-smart-errors)
+[![Build Status](https://travis-ci.org/anlutro/laravel-4-smart-errors.png?branch=master)](https://travis-ci.org/anlutro/laravel-4-smart-errors)  [![Latest Version](http://img.shields.io/github/tag/anlutro/laravel-4-smart-errors.svg)](https://github.com/anlutro/laravel-4-smart-errors/releases)
 
 Small system for showing a very generic error message to your end-users while sending an email to yourself with all relevant information about the exception.
 
