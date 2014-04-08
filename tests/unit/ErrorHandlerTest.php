@@ -88,7 +88,8 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 		$app['request'] = m::mock('Illuminate\Http\Request');
 		$app['request']->shouldReceive('root')->andReturn('http://foo.com');
 		$app['request']->shouldReceive('fullUrl')->andReturn('http://foo.com/bar');
-		$this->setInput($app, array());
+		$app['request']->shouldReceive('header')->andReturn(null);
+		$this->setInput($app, array('foo' => 'bar'));
 		$this->setJsonRequest($app, false);
 	}
 
@@ -139,7 +140,7 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 				if (!$closure instanceof Closure) return false;
 				$mail = m::mock('Illuminate\Mail\Message');
 				$mail->shouldReceive('to')->once()->with('test@test.com')->andReturn(m::self())
-					->getMock()->shouldReceive('subject')->once()->with('Error report - uncaught exception - http://foo.com');
+					->getMock()->shouldReceive('subject')->once()->with('[testing] Error report - uncaught exception - http://foo.com');
 				$closure($mail);
 				return true;
 			})

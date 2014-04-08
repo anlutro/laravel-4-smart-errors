@@ -1,9 +1,14 @@
+Uncaught exception: {{ $exception->info }}
+
+
+Application information
+=======================
 {{ $info->render() }}
+
 
 Exception stack trace
 =====================
 {{ $exception->trace }}
-
 @if ($exception->previous)
 
 

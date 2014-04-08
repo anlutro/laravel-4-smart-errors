@@ -16,7 +16,9 @@
         "laravel/framework": "~4.1"
     },
     "require-dev": {
-        "mockery/mockery": "dev-master@dev"
+        "mockery/mockery": "0.9.*",
+        "anlutro/l4-testing": "0.2.*",
+        "laravel/laravel": "~4.1"
     },
     "autoload": {
         "psr-0": {

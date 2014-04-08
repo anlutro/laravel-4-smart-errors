@@ -18,12 +18,12 @@ use Illuminate\Foundation\Application;
 class ErrorHandler
 {
 	/**
-	 * @var Illuminate\Foundation\Application
+	 * @var \Illuminate\Foundation\Application
 	 */
 	protected $app;
 
 	/**
-	 * @param Illuminate\Foundation\Application $app
+	 * @param \Illuminate\Foundation\Application $app
 	 */
 	public function __construct(Application $app)
 	{
@@ -37,13 +37,11 @@ class ErrorHandler
 	 * @param  Exception $exception
 	 * @param  integer   $code
 	 *
-	 * @return Illuminate\Http\Response|void
+	 * @return \Illuminate\Http\Response|void
 	 */
 	public function handleException($exception, $code = null)
 	{
-		$env = $this->app->environment();
-
-		$logstr = "[$env] Uncaught Exception (handled by L4SmartErrors)\n";
+		$logstr = "Uncaught Exception (handled by L4SmartErrors)\n";
 
 		$infoPresenter = $this->makeInfoPresenter();
 		$logstr .= $infoPresenter->renderCompact();
@@ -71,7 +69,7 @@ class ErrorHandler
 				$ePresenter->setDescriptive(true);
 			}
 
-			$inputPresenter = new InputPresenter($input);
+			$input = empty($input) ? false : new InputPresenter($input);
 
 			if ($this->app['config']->get('smarterror::include-query-log')) {
 				$queryLog = $this->app['db']->getQueryLog();
@@ -83,11 +81,13 @@ class ErrorHandler
 			$mailData = array(
 				'info'      => $infoPresenter,
 				'exception' => $ePresenter,
-				'input'     => $inputPresenter,
+				'input'     => $input,
 				'queryLog'  => $queryLog,
 			);
 
-			$subject = 'Error report - uncaught exception - ' . $this->app['request']->root() ?: $this->app['config']->get('app.url');
+			$env = $this->app->environment();
+
+			$subject = "[$env] Error report - uncaught exception - " . $this->app['request']->root() ?: $this->app['config']->get('app.url');
 			$htmlView = $this->app['config']->get('smarterror::error-email-view') ?: 'smarterror::error-email';
 			$plainView = $this->app['config']->get('smarterror::error-email-view-plain') ?: 'smarterror::error-email-plain';
 
@@ -102,68 +102,14 @@ class ErrorHandler
 				return Response::json(['errors' => [Lang::get('smarterror::genericErrorTitle')]], 500);
 			} else {
 				$view = $this->app['config']->get('smarterror::error-view') ?: 'smarterror::generic';
-				return Response::view($view, array(), 500);
+				$viewData = array(
+					'referer' => $this->app['request']->header('referer'),
+				);
+				return Response::view($view, $viewData, 500);
 			}
 		}
 
 		// if debug is true, do nothing and the default exception whoops page is shown
-	}
-
-	/**
-	 * Make an application information presenter object.
-	 *
-	 * @return anlutro\L4SmartErrors\AppInfoPresenter
-	 */
-	protected function makeInfoPresenter()
-	{
-		$console = $this->app->runningInConsole();
-
-		if ($console) {
-			$data = array(
-				'hostname' => gethostname(),
-			);
-		} else {
-			list($routeAction, $routeName) = $this->findRouteNames();
-			$data = array(
-				'url' => $this->app['request']->fullUrl(),
-				'method' => $this->app['request']->getMethod(),
-				'route-name' => $routeName,
-				'route-action' => $routeAction,
-				'client' => $this->app['request']->getClientIp(),
-			);
-		}
-
-		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s';
-		$data['time'] = date($timeFormat);
-
-		$presenter = new AppInfoPresenter($console, $data);
-
-		return $presenter;
-	}
-
-	/**
-	 * Handle a 404 error.
-	 *
-	 * @param  Exception $exception
-	 *
-	 * @return Illuminate\Http\Response|void
-	 */
-	public function handleMissing($exception)
-	{
-		$url = $this->app['request']->fullUrl();
-		$referer = $this->app['request']->header('referer');
-
-		$this->app['log']->warning("404 for URL $url -- Referer: $referer");
-
-		if ($this->app['config']->get('app.debug') === false) {
-			if ($this->requestIsJson()) {
-				$msg = $this->app['translator']->get('smarterror::missingTitle');
-				return Response::json(['errors' => [$msg]], 404);
-			} else {
-				$view = $this->app['config']->get('smarterror::missing-view') ?: 'smarterror::missing';
-				return Response::view($view, array(), 404);
-			}
-		}
 	}
 
 	/**
@@ -186,20 +132,10 @@ class ErrorHandler
 			$this->app['config']->set('mail.pretend', false);
 		}
 
-		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s';
-
-		list($routeAction, $routeName) = $this->findRouteNames();
-		$route = $routeAction ?: $routeName;
-		if (!$routeAction && $routeName) {
-			$route .= ' / ' . $routeName;
-		}
-
 		$mailData = array(
-			'logmsg'    => $message,
-			'context'   => $context,
-			'url'       => $this->app['request']->fullUrl(),
-			'route'     => $route,
-			'time'      => date($timeFormat),
+			'logmsg'  => $message,
+			'context' => new LogContextPresenter($context),
+			'info'    => $this->makeInfoPresenter(),
 		);
 
 		$subject = 'Alert logged - ' . $this->app['request']->root();
@@ -212,9 +148,71 @@ class ErrorHandler
 	}
 
 	/**
+	 * Handle a 404 error.
+	 *
+	 * @param  Exception $exception
+	 *
+	 * @return \Illuminate\Http\Response|void
+	 */
+	public function handleMissing($exception)
+	{
+		$url = $this->app['request']->fullUrl();
+		$referer = $this->app['request']->header('referer') ?: 'none';
+
+		$this->app['log']->warning("404 for URL $url -- Referer: $referer");
+
+		if ($this->app['config']->get('app.debug') === false) {
+			if ($this->requestIsJson()) {
+				$msg = $this->app['translator']->get('smarterror::missingTitle');
+				return Response::json(['errors' => [$msg]], 404);
+			} else {
+				$view = $this->app['config']->get('smarterror::missing-view') ?: 'smarterror::missing';
+				$viewData = array(
+					'referer' => $this->app['request']->header('referer'),
+				);
+				return Response::view($view, $viewData, 404);
+			}
+		}
+	}
+
+	/**
+	 * Make an application information presenter object.
+	 *
+	 * @return \anlutro\L4SmartErrors\AppInfoPresenter
+	 */
+	protected function makeInfoPresenter()
+	{
+		$console = $this->app->runningInConsole();
+
+		if ($console) {
+			$data = array(
+				'hostname' => gethostname(),
+			);
+		} else {
+			list($routeAction, $routeName) = $this->findRouteNames();
+			$data = array(
+				'url' => $this->app['request']->fullUrl(),
+				'method' => $this->app['request']->getMethod(),
+				'route-name' => $routeName,
+				'route-action' => $routeAction,
+				'client' => $this->app['request']->getClientIp(),
+			);
+		}
+
+		$data['environment'] = $this->app->environment();
+
+		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s';
+		$data['time'] = date($timeFormat);
+
+		$presenter = new AppInfoPresenter($console, $data);
+
+		return $presenter;
+	}
+
+	/**
 	 * Get the action or name of the current route.
 	 *
-	 * @return string
+	 * @return array
 	 */
 	protected function findRouteNames()
 	{

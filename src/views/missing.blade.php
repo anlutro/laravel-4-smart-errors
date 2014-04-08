@@ -1,13 +1,15 @@
 @extends('smarterror::layout')
 
-@section('title', Lang::get('smarterror::error.missingTitle'))
+@section('title', trans('smarterror::error.missingTitle'))
 
 @section('content')
 
 	<p>@lang('smarterror::error.missingText')</p>
-	<p>
-		{{ HTML::link(Request::header('referer'), Lang::get('smarterror::error.backLinkTitle')) }} - 
-		{{ HTML::link('/', Lang::get('smarterror::error.frontpageLinkTitle')) }}
+	<p style="text-align:center;">
+	@if ($referer)
+		<a href="{{ $referer }}">{{ trans('smarterror::error.backLinkTitle') }}</a> - 
+	@endif
+		<a href="/">{{ trans('smarterror::error.frontpageLinkTitle') }}</a>
 	</p>
 
 @stop

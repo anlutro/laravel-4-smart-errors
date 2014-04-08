@@ -27,6 +27,7 @@ class AppInfoPresenter extends AbstractPresenter
 		$info = array('Time: ' . $this->info('time'));
 
 		if ($this->console) {
+			$info[] = 'Console script';
 			$info[] = 'Hostname: ' . $this->info('hostname');
 		} else {
 			$info[] = 'Client: ' . $this->info('client');
@@ -43,7 +44,7 @@ class AppInfoPresenter extends AbstractPresenter
 		return $info;
 	}
 
-	public function render()
+	public function renderLines()
 	{
 		return implode("\n", $this->getInfoStrings());
 	}
@@ -58,8 +59,13 @@ class AppInfoPresenter extends AbstractPresenter
 		return implode(' -- ', $this->getInfoStrings());
 	}
 
+	public function render()
+	{
+		return $this->html ? $this->renderHtml() : $this->renderLines();
+	}
+
 	public function __toString()
 	{
-		return $this->html ? $this->renderHtml() : $this->render();
+		return $this->render();
 	}
 }
