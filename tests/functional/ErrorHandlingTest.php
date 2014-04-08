@@ -67,6 +67,8 @@ class ErrorHandlingTest extends PkgAppTestCase
 	{
 		$this->mock('swift.mailer')->shouldReceive('send')->once()
 			->andReturnUsing(function($msg) use($strings) {
+				$oldEnv = $this->app['env'];
+				$this->app['env'] = 'testing';
 				$html = $msg->getBody(); $children = $msg->getChildren();
 				$plain = $children[0]->getBody();
 				foreach ([$html, $plain] as $body) {
@@ -74,6 +76,7 @@ class ErrorHandlingTest extends PkgAppTestCase
 						$this->assertContains($string, $body);
 					}
 				}
+				$this->app['env'] = $oldEnv;
 			});
 	}
 
