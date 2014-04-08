@@ -17,6 +17,9 @@ Version 2.0 and up require Laravel 4.1, 1.x works with Laravel 4.0.
 
 Alternatively, run `composer require anlutro/l4-smart-errors`, which will automatically update your composer.json and download the package.
 
+The package tries to maintain 5.3 compatibility but due to incompatibilities with require-dev packages, is not tested on travis. If you find a 5.3 problem with the library, please open an issue.
+
+## Usage
 When the package has been downloaded, add the following to the list of service providers in app/config/app.php:
 
 	'anlutro\L4SmartErrors\L4SmartErrorsServiceProvider',
@@ -25,34 +28,17 @@ Run `php artisan config:publish anlutro/l4-smart-errors` and open the config fil
 
 Remove any App::error and App::missing you may have in your application to prevent conflicts. If you want to handle specific types of Exceptions yourself, you can add App::error closures with those specific exceptions as arguments.
 
-# Non-fatal error handling
-If you want to mail yourself on an error but not dump the user to a generic error screen, you can either fire a Laravel event:
+If you want to mail yourself on an error but not dump the user to a generic error screen, you can do so via the facade:
 
-	try {
-		// something
-	} catch (SpecificException $e) {
-		Event::fire('smarterror', array($e));
-		// display nice error message
-	}
-
-Uncaught exceptions in this snippet would trigger the error mail as usual.
-
-You can also instanciate the error handler yourself, which is slightly more difficult as you need to get the Illuminate\Foundation\Application instance somehow.
-
-	$handler = new \anlutro\L4SmartErrors\ErrorHandler($app);
-	$handler->handleException($exception);
+	$result = \anlutro\L4SmartErrors\SmartError::handleException($exception);
 
 `handleException` will return the generic error view if you'd like to use it for something.
 
 # Contribution
 I'll accept language files right away without discussion. For anything else, please be descriptive in your pull requests.
 
-If anyone wants to make a better-looking layout - mine is pretty ugly, I admit - please open an issue so we can discuss the matter.
-
 # Contact
 Open an issue on GitHub if you have any problems or suggestions.
-
-If you have any questions or want to have a chat, look for anlutro @ irc.freenode.net.
 
 # License
 The contents of this repository is released under the [MIT license](http://opensource.org/licenses/MIT).

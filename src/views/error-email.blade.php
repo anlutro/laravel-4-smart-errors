@@ -1,20 +1,20 @@
 <p>
-	<strong>Uncaught exception:</strong> {{ nl2br($exception->info) }}
+	<strong>Uncaught exception:</strong> {{ $exception->renderInfoHtml() }}
 </p>
+
+<p><b>Exception stack trace</b></p>
+<p><pre style="white-space:pre-wrap;">{{ $exception->renderTraceHtml() }}</pre></p>
+
+@if ($exception->previous)
+<p>
+	<b>Previous exception:</b> {{ $exception->previous->renderInfoHtml() }}
+</p>
+@endif
 
 <p><b>Application information</b></p>
 <p>
 	{{ $info->renderHtml() }}
 </p>
-
-<p><b>Exception stack trace</b></p>
-<p><pre style="white-space:pre-wrap;">{{ $exception->trace }}</pre></p>
-
-@if ($exception->previous)
-<p>
-	<b>Previous exception:</b> {{ nl2br($exception->previous->info) }}
-</p>
-@endif
 
 @if ($input)
 <hr>

@@ -39,4 +39,8 @@ abstract class AbstractPresenter
 
 		return $str;
 	}
+
+	public abstract function render();
+	public abstract function renderPlain();
+	public abstract function renderHtml();
 }

@@ -11,6 +11,9 @@ namespace anlutro\L4SmartErrors;
 
 class AppInfoPresenter extends AbstractPresenter
 {
+	protected $console;
+	protected $info;
+
 	public function __construct($console, array $info)
 	{
 		$this->console = (bool) $console;
@@ -44,7 +47,7 @@ class AppInfoPresenter extends AbstractPresenter
 		return $info;
 	}
 
-	public function renderLines()
+	public function renderPlain()
 	{
 		return implode("\n", $this->getInfoStrings());
 	}

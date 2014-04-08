@@ -36,6 +36,11 @@ class ErrorHandlingTest extends PkgAppTestCase
 		});
 	}
 
+	public function tearDown()
+	{
+		m::close();
+	}
+
 	/**
 	 * Mock a class on Laravel's IoC container.
 	 *
@@ -107,7 +112,6 @@ class ErrorHandlingTest extends PkgAppTestCase
 		ob_start();
 		$result = parent::call($method, $path);
 		ob_end_clean();
-		m::close();
 		return $result;
 	}
 

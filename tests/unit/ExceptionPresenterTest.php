@@ -6,17 +6,18 @@ class ExceptionPresenterTest extends PHPUnit_Framework_TestCase
 	{
 		$exception = new StubException('Test exception', 100);
 		$presenter = $this->makePresenter($exception);
-		$this->assertContains('StubException', $presenter->info);
-		$this->assertContains('Test exception', $presenter->info);
-		$this->assertContains('100', $presenter->info);
-		$this->assertContains(__FILE__, $presenter->info);
+		$str = $presenter->renderInfoPlain();
+		$this->assertContains('StubException', $str);
+		$this->assertContains('Test exception', $str);
+		$this->assertContains('100', $str);
+		$this->assertContains(__FILE__, $str);
 	}
 
 	public function testExceptionStrackTraceString()
 	{
 		$exception = new Exception;
 		$presenter = $this->makePresenter($exception);
-		$trace = $presenter->trace;
+		$trace = $presenter->renderTracePlain();
 
 		$this->assertContains(__FUNCTION__, $trace);
 		$this->assertContains(__CLASS__, $trace);
@@ -27,7 +28,7 @@ class ExceptionPresenterTest extends PHPUnit_Framework_TestCase
 		$exception = new Exception;
 		$presenter = $this->makePresenter($exception);
 		$presenter->setDescriptive(true);
-		$trace = $presenter->trace;
+		$trace = $presenter->renderTracePlain();
 
 		$this->assertContains(__FUNCTION__, $trace);
 		$this->assertContains(__CLASS__, $trace);

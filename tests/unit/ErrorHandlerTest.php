@@ -4,13 +4,6 @@ use Mockery as m;
 
 class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 {
-	public function setUp()
-	{
-		if (PHP_VERSION_ID < 50400) {
-			$this->markTestSkipped('CBA to write these tests in 5.3 syntax.');
-		}
-	}
-
 	public function tearDown()
 	{
 		m::close();

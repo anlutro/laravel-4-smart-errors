@@ -16,14 +16,21 @@ class LogContextPresenter extends AbstractPresenter
 		$this->context = $context;
 	}
 
-	public function render()
+	public function renderPlain()
 	{
-		return $this->renderVarDump($this->context, false);
+		$this->setHtml(false);
+		return $this->render();
 	}
 
 	public function renderHtml()
 	{
-		return $this->renderVarDump($this->context, true);
+		$this->setHtml(true);
+		return $this->render();
+	}
+
+	public function render()
+	{
+		return $this->renderVarDump($this->context);
 	}
 
 	public function __toString()

@@ -14,8 +14,8 @@ use Xethron\L4ToString;
 
 class ExceptionPresenter
 {
+	public $previous;
 	protected $exception;
-	protected $previous;
 	protected $descriptive = false;
 
 	public function __construct(Exception $exception)
@@ -38,56 +38,49 @@ class ExceptionPresenter
 		return $this->previous;
 	}
 
-	public function renderExceptionInfo()
+	public function renderInfoPlain()
 	{
-		$str = get_class($this->exception)."\n";
+		return implode("\n", $this->getExceptionInfo());
+	}
+
+	public function renderInfoHtml()
+	{
+		return implode('<br>', $this->getExceptionInfo());
+	}
+
+	public function getExceptionInfo()
+	{
+		$strings = array();
+		$strings[] = get_class($this->exception);
 
 		if ($this->exception->getMessage()) {
-			$str .= 'Exception message: '.$this->exception->getMessage()."\n";
+			$strings[] = 'Exception message: '.$this->exception->getMessage();
 		}
 
 		if ($this->exception->getCode()) {
-			$str .= 'Exception code: '.$this->exception->getCode()."\n";
+			$strings[] = 'Exception code: '.$this->exception->getCode();
 		}
 		
-		$str .= 'In '.$this->exception->getFile().' on line '.$this->exception->getLine();
+		$strings[] = 'In '.$this->exception->getFile().' on line '.$this->exception->getLine();
 
-		return $str;
+		return $strings;
 	}
 
-	public function renderStackTrace()
+	public function renderTracePlain()
 	{
-		$str = $this->descriptive ?
+		return $this->descriptive ?
 			$this->getDescriptiveStackTrace() :
 			$this->exception->getTraceAsString();
-
-		return $str;
 	}
 
-	public function getDescriptiveStackTrace()
+	public function renderTraceHtml()
+	{
+		return nl2br($this->renderTracePlain());
+	}
+
+	protected function getDescriptiveStackTrace()
 	{
 		return L4ToString::exception($this->exception);
-	}
-
-	public function __get($key)
-	{
-		switch ($key) {
-			case 'info':
-				return $this->renderExceptionInfo();
-				break;
-
-			case 'trace':
-				return $this->renderStackTrace();
-				break;
-
-			case 'previous':
-				return $this->getPrevious();
-				break;
-			
-			default:
-				return null;
-				break;
-		}
 	}
 
 	public function __toString()
