@@ -58,6 +58,7 @@ class ErrorHandler
 
 		$email = $this->app['config']->get('smarterror::dev-email');
 
+
 		// if debug is false and dev-email is set, send the mail
 		if ($this->app['config']->get('app.debug') === false && $email) {
 			if ($this->app['config']->get('smarterror::force-email') !== false) {

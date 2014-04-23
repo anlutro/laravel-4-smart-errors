@@ -50,8 +50,14 @@ class ErrorHandlingTest extends PkgAppTestCase
 	 */
 	public function mock($key)
 	{
-		$mock = m::mock(get_class($this->app[$key]));
-		$this->app->instance($key, $mock);
+		// more laravel retardation
+		if ($key === 'swift.mailer') {
+			$this->app->make('mailer')->setSwiftMailer($mock = m::mock('Swift_Mailer'));
+		} else {
+			$mock = m::mock(get_class($this->app->make($key)));
+			$this->app->instance($key, $mock);
+		}
+
 		return $mock;
 	}
 
@@ -101,19 +107,15 @@ class ErrorHandlingTest extends PkgAppTestCase
 	}
 
 	/**
-	 * Call an URL.
-	 *
-	 * @param  string $method HTTP method
-	 * @param  string $path   Relative URL
-	 *
-	 * @return \Symfony\Component\HttpFoundation\Response
+	 * {@inheritdoc}
 	 */
-	public function call($method, $path)
+	public function call()
 	{
 		// buffer the output because the exception handler is retarded
 		// https://github.com/laravel/framework/pull/4073
 		ob_start();
-		$result = parent::call($method, $path);
+		call_user_func_array(array($this->client, 'request'), func_get_args());
+		return $this->client->getResponse();
 		ob_end_clean();
 		return $result;
 	}
