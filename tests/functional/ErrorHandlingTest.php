@@ -115,7 +115,7 @@ class ErrorHandlingTest extends PkgAppTestCase
 		// https://github.com/laravel/framework/pull/4073
 		ob_start();
 		call_user_func_array(array($this->client, 'request'), func_get_args());
-		return $this->client->getResponse();
+		$result = $this->client->getResponse();
 		ob_end_clean();
 		return $result;
 	}
