@@ -34,7 +34,7 @@ class ErrorHandler
 	 * Handle an uncaught exception. Returns a view if config.app.debug == false,
 	 * otherwise returns void to let the default L4 error handler do its job.
 	 *
-	 * @param  Exception $exception
+	 * @param  \Exception $exception
 	 * @param  integer   $code
 	 *
 	 * @return \Illuminate\Http\Response|void
@@ -87,25 +87,26 @@ class ErrorHandler
 
 			$env = $this->app->environment();
 
-			$subject = "[$env] Error report - uncaught exception - " . $this->app['request']->root() ?: $this->app['config']->get('app.url');
+			$subject = "[$env] Error report - uncaught exception - ";
+			$subject .= $this->app['request']->root() ?: $this->app['config']->get('app.url');
 			$htmlView = $this->app['config']->get('smarterror::error-email-view') ?: 'smarterror::error-email';
 			$plainView = $this->app['config']->get('smarterror::error-email-view-plain') ?: 'smarterror::error-email-plain';
 
-			$this->app['mailer']->send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
+			$callback = function($msg) use($email, $subject) {
 				$msg->to($email)->subject($subject);
-			});
+			};
+
+			$this->app['mailer']->send(array($htmlView, $plainView), $mailData, $callback);
 		}
 
 		// if debug is false, show the friendly error message
 		if ($this->app['config']->get('app.debug') === false) {
 			if ($this->requestIsJson()) {
 				return Response::json(['errors' => [Lang::get('smarterror::genericErrorTitle')]], 500);
-			} else {
-				$view = $this->app['config']->get('smarterror::error-view') ?: 'smarterror::generic';
-				$viewData = array(
+			} else if ($view = $this->app['config']->get('smarterror::error-view')) {
+				return Response::view($view, array(
 					'referer' => $this->app['request']->header('referer'),
-				);
-				return Response::view($view, $viewData, 500);
+				), 500);
 			}
 		}
 
@@ -142,15 +143,17 @@ class ErrorHandler
 		$htmlView = $this->app['config']->get('smarterror::alert-email-view') ?: 'smarterror::alert-email';
 		$plainView = $this->app['config']->get('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
 
-		$this->app['mailer']->send(array($htmlView, $plainView), $mailData, function($msg) use($email, $subject) {
+		$callback = function($msg) use($email, $subject) {
 			$msg->to($email)->subject($subject);
-		});
+		};
+
+		$this->app['mailer']->send(array($htmlView, $plainView), $mailData, $callback);
 	}
 
 	/**
 	 * Handle a 404 error.
 	 *
-	 * @param  Exception $exception
+	 * @param  \Exception $exception
 	 *
 	 * @return \Illuminate\Http\Response|void
 	 */
@@ -165,12 +168,10 @@ class ErrorHandler
 			if ($this->requestIsJson()) {
 				$msg = $this->app['translator']->get('smarterror::missingTitle');
 				return Response::json(['errors' => [$msg]], 404);
-			} else {
-				$view = $this->app['config']->get('smarterror::missing-view') ?: 'smarterror::missing';
-				$viewData = array(
+			} else if ($view = $this->app['config']->get('smarterror::missing-view')) {
+				return Response::view($view, array(
 					'referer' => $this->app['request']->header('referer'),
-				);
-				return Response::view($view, $viewData, 404);
+				), 404);
 			}
 		}
 	}
@@ -191,17 +192,17 @@ class ErrorHandler
 		} else {
 			list($routeAction, $routeName) = $this->findRouteNames();
 			$data = array(
-				'url' => $this->app['request']->fullUrl(),
-				'method' => $this->app['request']->getMethod(),
-				'route-name' => $routeName,
+				'url'          => $this->app['request']->fullUrl(),
+				'method'       => $this->app['request']->getMethod(),
+				'route-name'   => $routeName,
 				'route-action' => $routeAction,
-				'client' => $this->app['request']->getClientIp(),
+				'client'       => $this->app['request']->getClientIp(),
 			);
 		}
 
 		$data['environment'] = $this->app->environment();
 
-		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s';
+		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s e';
 		$data['time'] = date($timeFormat);
 
 		$presenter = new AppInfoPresenter($console, $data);

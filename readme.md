@@ -19,6 +19,15 @@ Alternatively, run `composer require anlutro/l4-smart-errors`, which will automa
 
 The package tries to maintain 5.3 compatibility but due to incompatibilities with require-dev packages, is not tested on travis. If you find a 5.3 problem with the library, please open an issue.
 
+### IMPORTANT: Upgrading from 2.1
+
+Behaviour has changed in 2.2 in a slightly backwards incompatible way. If 'error-view' or 'missing-view' in the config file is set to null, a view response is not returned at all from the error/404 handler. This is in order to let users add their own App::error / App::missing handlers that returns a view with custom data, instead of being forced into using a view composer if you want to use a custom view which requires specific variables to be defined.
+
+To keep behaviour as is in 2.1, make sure the config file is published, then change your config.php file to include the following lines:
+
+	'error-view' => 'smarterror::generic',
+	'missing-view' => 'smarterror::missing',
+
 ## Usage
 When the package has been downloaded, add the following to the list of service providers in app/config/app.php:
 

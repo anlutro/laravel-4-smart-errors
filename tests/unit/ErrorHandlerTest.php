@@ -40,8 +40,8 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 			'smarterror::error-email-view-plain' => null,
 			'smarterror::alert-email-view' => null,
 			'smarterror::alert-email-view-plain' => null,
-			'smarterror::error-view' => null,
-			'smarterror::missing-view' => null,
+			'smarterror::error-view' => 'smarterror::generic', // 2.2
+			'smarterror::missing-view' => 'smarterror::missing', // 2.2
 			'smarterror::date-format' => null,
 			'smarterror::expand-stack-trace' => false,
 			'smarterror::include-query-log' => false,
