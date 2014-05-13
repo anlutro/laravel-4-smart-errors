@@ -101,7 +101,7 @@ class ErrorHandler
 		}
 
 		// the default laravel console error handler really sucks - override it
-		if ($this->app->runningInConsole() && !$this->app->runningUnitTests()) {
+		if ($this->shouldReturnConsoleResponse()) {
 			// if log_error is false and error_log is not set, fatal errors
 			// should go to STDERR which, in the cli environment, is STDOUT
 			if (
@@ -128,6 +128,24 @@ class ErrorHandler
 		}
 
 		// if debug is true, do nothing and the default exception whoops page is shown
+	}
+
+	/**
+	 * Determine whether a console response should be returned.
+	 *
+	 * @return boolean
+	 */
+	protected function shouldReturnConsoleResponse()
+	{
+		global $argv; // this fucking sucks omg
+
+		if (isset($argv[0])) {
+			foreach (['phpunit', 'codecept', 'behat', 'phpspec'] as $needle) {
+				if (strpos($argv[0], $needle) !== false) return false;
+			}
+		}
+
+		return $this->app->runningInConsole() && !$this->app->runningUnitTests();
 	}
 
 	/**
