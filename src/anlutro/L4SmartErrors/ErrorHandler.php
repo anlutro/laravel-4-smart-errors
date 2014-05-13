@@ -11,6 +11,7 @@ namespace anlutro\L4SmartErrors;
 
 use Illuminate\Support\Facades\Response;
 use Illuminate\Foundation\Application;
+use Symfony\Component\Debug\Exception\FatalErrorException;
 
 /**
  * The class that handles the errors. Obviously
@@ -97,6 +98,22 @@ class ErrorHandler
 			};
 
 			$this->app['mailer']->send(array($htmlView, $plainView), $mailData, $callback);
+		}
+
+		// the default laravel console error handler really sucks - override it
+		if ($this->app->runningInConsole() && !$this->app->runningUnitTests()) {
+			// if log_error is false and error_log is not set, fatal errors
+			// should go to STDERR which, in the cli environment, is STDOUT
+			if (
+				ini_get('log_errors') === "1" &&
+				!ini_get('error_log') &&
+				$exception instanceof FatalErrorException
+			) {
+				return '';
+			}
+
+			// if the exception is not fatal, simply echo it and a newline
+			return $exception . "\n";
 		}
 
 		// if debug is false, show the friendly error message
