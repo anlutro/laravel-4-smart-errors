@@ -227,7 +227,14 @@ class ErrorHandler
 		// if the request has the referer header, it's safe to redirect back to
 		// the previous page with an error message. this way, no user input
 		// is lost if a browser tab has been left open too long or something
-		if ($this->app['request']->header('referer')) {
+		$referer = $this->app['request']->header('referer');
+
+		// make sure the referer url is not the same as the current page url,
+		// and that the method is not GET - this prevents a redirect loop
+		$current = $this->app['request']->fullUrl();
+		$method = $this->app['request']->getMethod();
+
+		if ($referer && $referer != $current && $method !== 'get') {
 			return $this->app['redirect']->back()->withInput()
 				->withErrors($this->app['translator']->get('smarterror::error.csrfText'));
 		}
