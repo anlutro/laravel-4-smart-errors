@@ -212,6 +212,38 @@ class ErrorHandler
 	}
 
 	/**
+	 * Handle a CSRF token mismatch exception.
+	 *
+	 * @param  \Illuminate\Session\TokenMismatchException $exception
+	 *
+	 * @return \Illuminate\Http\Response|void
+	 */
+	public function handleTokenMismatch($exception)
+	{
+		$logstr = "CSRF token mismatch (handled by L4SmartErrors)\n";
+		$logstr .= $this->makeInfoPresenter()->renderCompact();
+		$this->app['log']->warning($logstr);
+
+		// if the request has the referer header, it's safe to redirect back to
+		// the previous page with an error message. this way, no user input
+		// is lost if a browser tab has been left open too long or something
+		if ($this->app['request']->header('referer')) {
+			return $this->app['redirect']->back()->withInput()
+				->withErrors($this->app['translator']->get('smarterror::error.csrfText'));
+		}
+
+		if ($this->app['config']->get('app.debug') === false) {
+			if ($this->requestIsJson()) {
+				return Response::json(['errors' => [Lang::get('smarterror::error.csrfText')]], 400);
+			} else if ($view = $this->app['config']->get('smarterror::csrf-view')) {
+				return Response::view($view, array(
+					'referer' => $this->app['request']->header('referer'),
+				), 400);
+			}
+		}
+	}
+
+	/**
 	 * Make an application information presenter object.
 	 *
 	 * @return \anlutro\L4SmartErrors\AppInfoPresenter

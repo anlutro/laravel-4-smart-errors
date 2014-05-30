@@ -10,6 +10,7 @@
 namespace anlutro\L4SmartErrors;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Session\TokenMismatchException;
 
 class L4SmartErrorsServiceProvider extends ServiceProvider
 {
@@ -47,6 +48,11 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 		// register the error handler
 		$this->app->error(function(\Exception $exception, $code) use ($app) {
 			return $app['smarterror']->handleException($exception, $code);
+		});
+
+		// register the csrf handler
+		$this->app->error(function(TokenMismatchException $exception, $code) use ($app) {
+			return $app['smarterror']->handleTokenMismatch($exception);
 		});
 
 		// register the 404 handler

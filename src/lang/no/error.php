@@ -15,6 +15,9 @@ return array(
 	'missingTitle' => 'Fant ikke siden',
 	'missingText' => 'Siden du prøvde å nå finnes ikke.',
 
+	'csrfTitle' => 'Ugyldig forespørsel',
+	'csrfText' => 'Vi kunne ikke bekrefte gyldigheten av forespørselen din da økten din er utløpt. Vennligst prøv igjen.',
+
 	'backLinkTitle' => 'Tilbake',
 	'frontpageLinkTitle' => 'Forsiden',
 );

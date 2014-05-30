@@ -106,20 +106,6 @@ class ErrorHandlingTest extends PkgAppTestCase
 		return $response;
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function call()
-	{
-		// buffer the output because the exception handler is retarded
-		// https://github.com/laravel/framework/pull/4073
-		ob_start();
-		call_user_func_array(array($this->client, 'request'), func_get_args());
-		$result = $this->client->getResponse();
-		ob_end_clean();
-		return $result;
-	}
-
 	/** @test */
 	public function basicErrorHandling()
 	{
@@ -174,6 +160,22 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->assertEquals(404, $response->getStatusCode());
 		$this->assertContains(
 			$this->app['translator']->get('smarterror::error.missingTitle'),
+			$response->getContent()
+		);
+	}
+
+	/** @test */
+	public function csrfHandling()
+	{
+		$this->app['router']->enableFilters();
+		$this->app['session']->set('_token', 'realtoken');
+		$this->app['router']->post('/csrf-mismatch', ['before' => 'csrf', function() { return 'Success!'; }]);
+		$this->mock('log')->shouldReceive('warning')->once();
+		$this->call('post', '/csrf-mismatch', ['_token' => 'faketoken']);
+		$response = $this->getResponse();
+		$this->assertEquals(400, $response->getStatusCode());
+		$this->assertContains(
+			$this->app['translator']->get('smarterror::error.csrfTitle'),
 			$response->getContent()
 		);
 	}

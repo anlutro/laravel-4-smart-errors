@@ -30,6 +30,9 @@ return array(
 	// The view for 404 errors. Set to null for same reason as above
 	'missing-view' => 'smarterror::missing',
 
+	// The view for CSRF errors. Set to null for same reason as above
+	'csrf-view' => 'smarterror::csrf',
+
 	// The PHP date() format that should be used.
 	'date-format' => 'Y-m-d H:i:s e',
 

@@ -15,6 +15,9 @@ return array(
 	'missingTitle' => 'Page not found',
 	'missingText' => 'The page you requested could not be found.',
 
+	'csrfTitle' => 'Invalid request',
+	'csrfText' => 'We could not confirm the authenticity of your request as your session timed out. Please try again.',
+
 	'backLinkTitle' => 'Go back',
 	'frontpageLinkTitle' => 'Front page',
 );
