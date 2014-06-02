@@ -59,8 +59,7 @@ class ErrorHandler
 
 		$email = $this->app['config']->get('smarterror::dev-email');
 
-		// if debug is false and dev-email is set, send the mail
-		if ($this->app['config']->get('app.debug') === false && $email) {
+		if ($email && $this->shouldSendEmail($exception)) {
 			if ($this->app['config']->get('smarterror::force-email') !== false) {
 				$this->app['config']->set('mail.pretend', false);
 			}
@@ -128,6 +127,47 @@ class ErrorHandler
 		}
 
 		// if debug is true, do nothing and the default exception whoops page is shown
+	}
+
+	/**
+	 * Determine if the error handler should send an email.
+	 *
+	 * @param  \Exception $exception
+	 *
+	 * @return boolean
+	 */
+	protected function shouldSendEmail($exception)
+	{
+		// if app.debug is true, no emails should be sent
+		if ($this->app['config']->get('app.debug') === true) return false;
+
+		$files = $this->app['files'];
+		$path = $this->app['config']->get('smarterror::storage-path');
+
+		// create a basic hash of the exception. this should include the stack
+		// trace and message, making it more or less a unique identifier
+		$string = $exception->getMessage().$exception->getCode()
+			.$exception->getTraceAsString();
+		$hash = base64_encode($string);
+
+		$data = array();
+
+		// if the file exists, read from it and check if the hash of the current
+		// exception is the same as the previous one.
+		if ($files->exists($path)) {
+			$data = json_decode($files->get($path), true);
+			if (isset($data['previous']) && $data['previous'] == $hash) {
+				return false;
+			}
+		}
+
+		// if the file is writeable, write the current exception hash into it.
+		if ($files->isWritable($path)) {
+			$data['previous'] = $hash;
+			$files->put($path, json_encode($data));
+		}
+
+		return true;
 	}
 
 	/**

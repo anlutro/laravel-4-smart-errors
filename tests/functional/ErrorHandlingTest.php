@@ -34,6 +34,9 @@ class ErrorHandlingTest extends PkgAppTestCase
 			$this->app['log']->alert('L4SmartErrors test alert', ['foo' => 'bar']);
 			return 'Logged!';
 		});
+
+		$storPath = $this->app['config']->get('smarterror::storage-path');
+		$this->app['files']->put($storPath, '{}');
 	}
 
 	public function tearDown()
@@ -178,5 +181,17 @@ class ErrorHandlingTest extends PkgAppTestCase
 			$this->app['translator']->get('smarterror::error.csrfTitle'),
 			$response->getContent()
 		);
+	}
+
+	/** @test */
+	public function sameExceptionIsNotEmailedTwice()
+	{
+		// expect send() to be called only once
+		$this->expectMailBodiesContain([
+			'LogicException', 'L4SmartErrors test exception', __FILE__,
+		]);
+
+		// put these on the same line to make sure stack traces are identical
+		$this->call('get', '/exception'); $this->call('get', '/exception');
 	}
 }

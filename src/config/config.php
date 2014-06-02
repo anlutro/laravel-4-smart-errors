@@ -41,4 +41,7 @@ return array(
 
 	// whether to include query logs in error report emails.
 	'include-query-log' => false,
+
+	// path to JSON file where metadata is stored.
+	'storage-path' => app_path().'/storage/l4-smart-errors.json',
 );

@@ -22,6 +22,7 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 		$this->setLogger($app);
 		$this->setMailer($app);
 		$this->setView($app);
+		$this->setFiles($app);
 		$this->setRequest($app);
 		foreach ($binding as $key => $value) {
 			$app->instance($key, $value);
@@ -74,6 +75,11 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 	protected function setView($app)
 	{
 		$app['view'] = m::mock('Illuminate\View\Environment');
+	}
+
+	protected function setFiles($app)
+	{
+		$app['files'] = m::mock('Illuminate\Filesystem\Filesystem');
 	}
 
 	public function setRequest($app)
@@ -140,6 +146,10 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 		);
 
 		$app['view']->shouldReceive('make')->with('smarterror::generic', m::type('array'));
+
+		$app['files']->shouldReceive('exists')->once()->andReturn(false);
+		$app['files']->shouldReceive('isWritable')->once()->andReturn(true);
+		$app['files']->shouldReceive('put')->once();
 
 		$handler->handleException(new Exception);
 	}
