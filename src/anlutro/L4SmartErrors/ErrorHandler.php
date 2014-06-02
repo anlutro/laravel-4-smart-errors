@@ -24,6 +24,11 @@ class ErrorHandler
 	protected $app;
 
 	/**
+	 * @var array
+	 */
+	protected $handledExceptions = [];
+
+	/**
 	 * @param \Illuminate\Foundation\Application $app
 	 */
 	public function __construct(Application $app)
@@ -42,6 +47,9 @@ class ErrorHandler
 	 */
 	public function handleException($exception, $code = null)
 	{
+		if (in_array($exception, $this->handledExceptions)) return;
+		$this->handledExceptions[] = $exception;
+
 		$logstr = "Uncaught Exception (handled by L4SmartErrors)\n";
 
 		$infoPresenter = $this->makeInfoPresenter();
@@ -234,6 +242,9 @@ class ErrorHandler
 	 */
 	public function handleMissing($exception)
 	{
+		if (in_array($exception, $this->handledExceptions)) return;
+		$this->handledExceptions[] = $exception;
+
 		$url = $this->app['request']->fullUrl();
 		$referer = $this->app['request']->header('referer') ?: 'none';
 
@@ -260,6 +271,9 @@ class ErrorHandler
 	 */
 	public function handleTokenMismatch($exception)
 	{
+		if (in_array($exception, $this->handledExceptions)) return;
+		$this->handledExceptions[] = $exception;
+
 		$logstr = "CSRF token mismatch (handled by L4SmartErrors)\n";
 		$logstr .= $this->makeInfoPresenter()->renderCompact();
 		$this->app['log']->warning($logstr);
