@@ -2,6 +2,11 @@
 	<strong>Uncaught exception:</strong> {{ $exception->renderInfoHtml() }}
 </p>
 
+<p><b>Application information</b></p>
+<p>
+	{{ $info->renderHtml() }}
+</p>
+
 <p><b>Exception stack trace</b></p>
 <p><pre style="white-space:pre-wrap;">{{ $exception->renderTraceHtml() }}</pre></p>
 
@@ -10,11 +15,6 @@
 	<b>Previous exception:</b> {{ $exception->previous->renderInfoHtml() }}
 </p>
 @endif
-
-<p><b>Application information</b></p>
-<p>
-	{{ $info->renderHtml() }}
-</p>
 
 @if ($input)
 <hr>

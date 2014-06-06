@@ -1,6 +1,11 @@
 Uncaught exception: {{ $exception->renderInfoPlain() }}
 
 
+Application information
+=======================
+{{ $info->renderPlain() }}
+
+
 Exception stack trace
 =====================
 {{ $exception->renderTracePlain() }}
@@ -11,11 +16,6 @@ Previous exception
 ==================
 {{ $exception->previous->renderInfoPlain() }}
 @endif
-
-
-Application information
-=======================
-{{ $info->renderPlain() }}
 @if ($input)
 
 
