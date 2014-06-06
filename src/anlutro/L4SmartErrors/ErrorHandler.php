@@ -325,6 +325,7 @@ class ErrorHandler
 				'route-name'   => $routeName,
 				'route-action' => $routeAction,
 				'client'       => $this->app['request']->getClientIp(),
+				'referer'      => $this->app['request']->header('referer'),
 			);
 		}
 

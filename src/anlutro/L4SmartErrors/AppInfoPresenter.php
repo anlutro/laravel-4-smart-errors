@@ -36,6 +36,7 @@ class AppInfoPresenter extends AbstractPresenter
 			$info[] = 'Client: ' . $this->info('client');
 			$info[] = 'URL: ' . $this->info('url');
 			$info[] = 'HTTP method: ' . $this->info('method');
+			$info[] = 'Referer: ' . $this->info('referer');
 			if ($this->info('route-action')) {
 				$info[] = 'Route action: ' . $this->info('route-action');
 			}
