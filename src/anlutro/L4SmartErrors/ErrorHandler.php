@@ -95,7 +95,9 @@ class ErrorHandler
 
 			$env = $this->app->environment();
 
-			$subject = "[$env] Error report - uncaught exception - ";
+			$exceptionName = get_class($exception);
+			$exceptionName = substr($exceptionName, strrpos($exceptionName, '\\'));
+			$subject = "[$env] $exceptionName - ";
 			$subject .= $this->app['request']->root() ?: $this->app['config']->get('app.url');
 			$htmlView = $this->app['config']->get('smarterror::error-email-view') ?: 'smarterror::error-email';
 			$plainView = $this->app['config']->get('smarterror::error-email-view-plain') ?: 'smarterror::error-email-plain';

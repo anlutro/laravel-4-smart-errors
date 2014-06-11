@@ -139,7 +139,7 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 				if (!$closure instanceof Closure) return false;
 				$mail = m::mock('Illuminate\Mail\Message');
 				$mail->shouldReceive('to')->once()->with('test@test.com')->andReturn(m::self())
-					->getMock()->shouldReceive('subject')->once()->with('[testing] Error report - uncaught exception - http://foo.com');
+					->getMock()->shouldReceive('subject')->once()->with('[testing] Exception - http://foo.com');
 				$closure($mail);
 				return true;
 			})
