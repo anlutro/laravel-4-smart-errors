@@ -172,7 +172,10 @@ class ErrorHandler
 		}
 
 		// if the file is writeable, write the current exception hash into it.
-		if ($files->isWritable($path)) {
+		if (
+			($files->isFile($path) && $files->isWritable($path))
+			|| ($files->isDirectory(dirname($path)) && $files->isWritable(dirname($path)))
+		) {
 			$data['previous'] = $hash;
 			$files->put($path, json_encode($data));
 		}
