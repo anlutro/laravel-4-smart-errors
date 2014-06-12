@@ -148,6 +148,7 @@ class ErrorHandlerTest extends PHPUnit_Framework_TestCase
 		$app['view']->shouldReceive('make')->with('smarterror::generic', m::type('array'));
 
 		$app['files']->shouldReceive('exists')->once()->andReturn(false);
+		$app['files']->shouldReceive('isFile')->once()->andReturn(true);
 		$app['files']->shouldReceive('isWritable')->once()->andReturn(true);
 		$app['files']->shouldReceive('put')->once();
 
