@@ -68,6 +68,68 @@ class ErrorHandler
 	}
 
 	/**
+	 * Handle an alert-level logging event.
+	 *
+	 * @param  string $message
+	 * @param  array  $context
+	 *
+	 * @return void
+	 */
+	public function handleAlert($message, $context)
+	{
+		$email = $this->app['config']->get('smarterror::dev-email');
+
+		if ($this->app['config']->get('app.debug') !== false || empty($email)) {
+			return;
+		}
+
+		if ($this->app['config']->get('smarterror::force-email') !== false) {
+			$this->app['config']->set('mail.pretend', false);
+		}
+
+		with(new Mail\AlertLogMailer($this->app, $message, $this->makeLogContextPresenter($context), $this->makeAppInfoGenerator()))
+			->send($email);
+	}
+
+	/**
+	 * Handle a 404 error.
+	 *
+	 * @param  \Exception $exception
+	 *
+	 * @return \Illuminate\Http\Response|void
+	 */
+	public function handleMissing($exception)
+	{
+		if ($this->handledExceptions->contains($exception)) return;
+		$this->handledExceptions->attach($exception);
+
+		with(new Log\MissingLogger($this->app['log'], $this->app['request']))
+			->log();
+
+		return with(new Responders\MissingResponder($this->app))
+			->respond($exception);
+	}
+
+	/**
+	 * Handle a CSRF token mismatch exception.
+	 *
+	 * @param  \Illuminate\Session\TokenMismatchException $exception
+	 *
+	 * @return \Illuminate\Http\Response|void
+	 */
+	public function handleTokenMismatch($exception)
+	{
+		if ($this->handledExceptions->contains($exception)) return;
+		$this->handledExceptions->attach($exception);
+
+		with(new Log\CsrfLogger($this->app['log'], $this->makeAppInfoGenerator()))
+			->log();
+
+		return with(new Responders\CsrfResponder($this->app))
+			->respond($exception);
+	}
+
+	/**
 	 * Determine if the error handler should send an email.
 	 *
 	 * @param  \Exception $exception
@@ -140,68 +202,6 @@ class ErrorHandler
 		return false;
 	}
 
-	/**
-	 * Handle an alert-level logging event.
-	 *
-	 * @param  string $message
-	 * @param  array  $context
-	 *
-	 * @return void
-	 */
-	public function handleAlert($message, $context)
-	{
-		$email = $this->app['config']->get('smarterror::dev-email');
-
-		if ($this->app['config']->get('app.debug') !== false || empty($email)) {
-			return;
-		}
-
-		if ($this->app['config']->get('smarterror::force-email') !== false) {
-			$this->app['config']->set('mail.pretend', false);
-		}
-
-		with(new Mail\AlertLogMailer($this->app, $message, $this->makeLogContextPresenter($context), $this->makeAppInfoGenerator()))
-			->send($email);
-	}
-
-	/**
-	 * Handle a 404 error.
-	 *
-	 * @param  \Exception $exception
-	 *
-	 * @return \Illuminate\Http\Response|void
-	 */
-	public function handleMissing($exception)
-	{
-		if ($this->handledExceptions->contains($exception)) return;
-		$this->handledExceptions->attach($exception);
-
-		with(new Log\MissingLogger($this->app['log'], $this->app['request']))
-			->log();
-
-		return with(new Responders\MissingResponder($this->app))
-			->respond($exception);
-	}
-
-	/**
-	 * Handle a CSRF token mismatch exception.
-	 *
-	 * @param  \Illuminate\Session\TokenMismatchException $exception
-	 *
-	 * @return \Illuminate\Http\Response|void
-	 */
-	public function handleTokenMismatch($exception)
-	{
-		if ($this->handledExceptions->contains($exception)) return;
-		$this->handledExceptions->attach($exception);
-
-		with(new Log\CsrfLogger($this->app['log'], $this->makeAppInfoGenerator()))
-			->log();
-
-		return with(new Responders\CsrfResponder($this->app))
-			->respond($exception);
-	}
-
 	protected function makeAllPresenters($exception)
 	{
 		return array(
@@ -240,32 +240,5 @@ class ErrorHandler
 	protected function makeLogContextPresenter(array $context)
 	{
 		return new Presenters\LogContextPresenter($context);
-	}
-
-	/**
-	 * Get the action or name of the current route.
-	 *
-	 * @return array
-	 */
-	protected function findRouteNames()
-	{
-		$route = $this->app['router']->current();
-
-		if (!$route) {
-			return array(null, null);
-		} else {
-			return array($route->getActionName(), $route->getName());
-		}
-	}
-
-	/**
-	 * Determine whether a JSON response should be returned.
-	 *
-	 * @return bool
-	 */
-	protected function requestIsJson()
-	{
-		$request = $this->app['request'];
-		return $request->wantsJson() || $request->isJson() || $request->ajax();
 	}
 }
