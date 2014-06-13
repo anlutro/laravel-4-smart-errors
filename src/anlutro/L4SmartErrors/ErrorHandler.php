@@ -9,9 +9,10 @@
 
 namespace anlutro\L4SmartErrors;
 
-use Illuminate\Support\Facades\Response;
+use Exception;
 use Illuminate\Foundation\Application;
-use Symfony\Component\Debug\Exception\FatalErrorException;
+use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * The class that handles the errors. Obviously
@@ -46,10 +47,9 @@ class ErrorHandler
 	 *
 	 * @return \Illuminate\Http\Response|void
 	 */
-	public function handleException($exception, $code = null)
+	public function handleException(Exception $exception, $code = null)
 	{
-		if ($this->handledExceptions->contains($exception)) return;
-		$this->handledExceptions->attach($exception);
+		if ($this->exceptionHasBeenHandled($exception)) return;
 
 		list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter) = $this->makeAllPresenters($exception);
 
@@ -94,14 +94,13 @@ class ErrorHandler
 	/**
 	 * Handle a 404 error.
 	 *
-	 * @param  \Exception $exception
+	 * @param  \Symfony\Component\HttpKernel\Exception\NotFoundHttpException $exception
 	 *
 	 * @return \Illuminate\Http\Response|void
 	 */
-	public function handleMissing($exception)
+	public function handleMissing(NotFoundHttpException $exception)
 	{
-		if ($this->handledExceptions->contains($exception)) return;
-		$this->handledExceptions->attach($exception);
+		if ($this->exceptionHasBeenHandled($exception)) return;
 
 		with(new Log\MissingLogger($this->app['log'], $this->app['request']))
 			->log();
@@ -117,16 +116,29 @@ class ErrorHandler
 	 *
 	 * @return \Illuminate\Http\Response|void
 	 */
-	public function handleTokenMismatch($exception)
+	public function handleTokenMismatch(TokenMismatchException $exception)
 	{
-		if ($this->handledExceptions->contains($exception)) return;
-		$this->handledExceptions->attach($exception);
+		if ($this->exceptionHasBeenHandled($exception)) return;
 
 		with(new Log\CsrfLogger($this->app['log'], $this->makeAppInfoGenerator()))
 			->log();
 
 		return with(new Responders\CsrfResponder($this->app))
 			->respond($exception);
+	}
+
+	/**
+	 * Determine if an exception has been previously handled or not.
+	 *
+	 * @param  \Exception $exception
+	 *
+	 * @return boolean
+	 */
+	protected function exceptionHasBeenHandled(Exception $exception)
+	{
+		if ($this->handledExceptions->contains($exception)) return true;
+		$this->handledExceptions->attach($exception);
+		return false;
 	}
 
 	/**
@@ -202,7 +214,14 @@ class ErrorHandler
 		return false;
 	}
 
-	protected function makeAllPresenters($exception)
+	/**
+	 * Get an array of all the different presenters available.
+	 *
+	 * @param  \Exception $exception
+	 *
+	 * @return array
+	 */
+	protected function makeAllPresenters(Exception $exception)
 	{
 		return array(
 			$this->makeExceptionPresenter($exception),
@@ -212,22 +231,45 @@ class ErrorHandler
 		);
 	}
 
+	/**
+	 * Make an exception presenter.
+	 *
+	 * @param  \Exception $exception
+	 *
+	 * @return \anlutro\L4SmartErrors\Presenters\ExceptionPresenter
+	 */
 	protected function makeExceptionPresenter($exception)
 	{
 		return new Presenters\ExceptionPresenter($exception);
 	}
 
+	/**
+	 * Make an application information generator.
+	 *
+	 * @return \anlutro\L4SmartErrors\AppInfoGenerator
+	 */
 	protected function makeAppInfoGenerator()
 	{
 		return new AppInfoGenerator($this->app);
 	}
 
+	/**
+	 * Make an input presenter. Returns null if no input is available.
+	 *
+	 * @return \anlutro\L4SmartErrors\Presenters\InputPresenter|null
+	 */
 	protected function makeInputPresenter()
 	{
 		$input = $this->app['request']->all();
 		return empty($input) ? null : new Presenters\InputPresenter($input);
 	}
 
+	/**
+	 * Make a query log presenter. Returns null if mailing of query log is
+	 * disabled in the smart-error config.
+	 *
+	 * @return \anlutro\L4SmartErrors\Presenters\QueryLogPresenter|null
+	 */
 	protected function makeQueryLogPresenter()
 	{
 		if ($this->app['config']->get('smarterror::include-query-log')) {
@@ -237,6 +279,11 @@ class ErrorHandler
 		return null;
 	}
 
+	/**
+	 * Make a log context presenter.
+	 *
+	 * @return \anlutro\L4SmartErrors\Presenters\LogContextPresenter
+	 */
 	protected function makeLogContextPresenter(array $context)
 	{
 		return new Presenters\LogContextPresenter($context);
