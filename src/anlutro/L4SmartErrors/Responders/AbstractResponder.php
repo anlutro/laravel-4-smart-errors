@@ -30,7 +30,7 @@ abstract class AbstractResponder
 		global $argv; // this fucking sucks omg
 
 		if (isset($argv[0])) {
-			foreach (['phpunit', 'codecept', 'behat', 'phpspec'] as $needle) {
+			foreach (array('phpunit', 'codecept', 'behat', 'phpspec') as $needle) {
 				if (strpos($argv[0], $needle) !== false) return false;
 			}
 		}

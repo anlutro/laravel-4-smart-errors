@@ -20,7 +20,7 @@ class MissingResponder extends AbstractResponder
 		if ($this->app['config']->get('app.debug') === false) {
 			if ($this->requestIsJson()) {
 				$msg = $this->app['translator']->get('smarterror::missingTitle');
-				return Response::json(['errors' => [$msg]], 404);
+				return Response::json(array('errors' => array($msg)), 404);
 			} else if ($view = $this->app['config']->get('smarterror::missing-view')) {
 				return Response::view($view, array(
 					'referer' => $this->app['request']->header('referer'),

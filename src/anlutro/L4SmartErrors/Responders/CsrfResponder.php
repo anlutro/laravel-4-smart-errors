@@ -36,7 +36,7 @@ class CsrfResponder extends AbstractResponder
 
 		if ($this->app['config']->get('app.debug') === false) {
 			if ($this->requestIsJson()) {
-				return Response::json(['errors' => [$this->app['translator']->get('smarterror::error.csrfText')]], 400);
+				return Response::json(array('errors' => array($this->app['translator']->get('smarterror::error.csrfText'))), 400);
 			} else if ($view = $this->app['config']->get('smarterror::csrf-view')) {
 				return Response::view($view, array(
 					'referer' => $request->header('referer'),
