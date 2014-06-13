@@ -26,7 +26,7 @@ class ErrorHandler
 	/**
 	 * @var array
 	 */
-	protected $handledExceptions = [];
+	protected $handledExceptions = array();
 
 	/**
 	 * @param \Illuminate\Foundation\Application $app
@@ -50,95 +50,20 @@ class ErrorHandler
 		if (in_array($exception, $this->handledExceptions)) return;
 		$this->handledExceptions[] = $exception;
 
-		$logstr = "Uncaught Exception (handled by L4SmartErrors)\n";
+		list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter) = $this->makeAllPresenters($exception);
 
-		$infoPresenter = $this->makeInfoPresenter();
-		$logstr .= $infoPresenter->renderCompact();
-
-		$input = $this->app['request']->all();
-		if (!empty($input)) {
-			$inputStr = with(new InputPresenter($input))->renderCompact();
-			$logstr .= "\nInput: " . $inputStr;
-		}
-
-		$logstr .= "\n" . $exception;
-
-		$this->app['log']->error($logstr);
+		with(new Log\ExceptionLogger($this->app['log'], $appInfoPresenter, $inputPresenter))
+			->log($exception);
 
 		$email = $this->app['config']->get('smarterror::dev-email');
 
 		if ($email && $this->shouldSendEmail($exception)) {
-			if ($this->app['config']->get('smarterror::force-email') !== false) {
-				$this->app['config']->set('mail.pretend', false);
-			}
-
-			$ePresenter = new ExceptionPresenter($exception);
-			if ($this->app['config']->get('smarterror::expand-stack-trace')) {
-				$ePresenter->setDescriptive(true);
-			}
-
-			$input = empty($input) ? false : new InputPresenter($input);
-
-			if ($this->app['config']->get('smarterror::include-query-log')) {
-				$queryLog = $this->app['db']->getQueryLog();
-				$queryLog = new QueryLogPresenter($queryLog);
-			} else {
-				$queryLog = false;
-			}
-
-			$mailData = array(
-				'info'      => $infoPresenter,
-				'exception' => $ePresenter,
-				'input'     => $input,
-				'queryLog'  => $queryLog,
-			);
-
-			$env = $this->app->environment();
-
-			$exceptionName = get_class($exception);
-			if (($pos = strrpos($exceptionName, '\\')) !== false) {
-				$exceptionName = substr($exceptionName, ($pos + 1));
-			}
-			$subject = "[$env] $exceptionName - ";
-			$subject .= $this->app['request']->root() ?: $this->app['config']->get('app.url');
-			$htmlView = $this->app['config']->get('smarterror::error-email-view') ?: 'smarterror::error-email';
-			$plainView = $this->app['config']->get('smarterror::error-email-view-plain') ?: 'smarterror::error-email-plain';
-
-			$callback = function($msg) use($email, $subject) {
-				$msg->to($email)->subject($subject);
-			};
-
-			$this->app['mailer']->send(array($htmlView, $plainView), $mailData, $callback);
+			with(new Mail\ExceptionMailer($this->app, $exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter))
+				->send($exception, $email);
 		}
 
-		// the default laravel console error handler really sucks - override it
-		if ($this->shouldReturnConsoleResponse()) {
-			// if log_error is false and error_log is not set, fatal errors
-			// should go to STDERR which, in the cli environment, is STDOUT
-			if (
-				ini_get('log_errors') === "1" &&
-				!ini_get('error_log') &&
-				$exception instanceof FatalErrorException
-			) {
-				return '';
-			}
-
-			// if the exception is not fatal, simply echo it and a newline
-			return $exception . "\n";
-		}
-
-		// if debug is false, show the friendly error message
-		if ($this->app['config']->get('app.debug') === false) {
-			if ($this->requestIsJson()) {
-				return Response::json(['errors' => [$this->app['translator']->get('smarterror::genericErrorTitle')]], 500);
-			} else if ($view = $this->app['config']->get('smarterror::error-view')) {
-				return Response::view($view, array(
-					'referer' => $this->app['request']->header('referer'),
-				), 500);
-			}
-		}
-
-		// if debug is true, do nothing and the default exception whoops page is shown
+		return with(new Responders\ExceptionResponder($this->app))
+			->respond($exception);
 	}
 
 	/**
@@ -215,24 +140,6 @@ class ErrorHandler
 	}
 
 	/**
-	 * Determine whether a console response should be returned.
-	 *
-	 * @return boolean
-	 */
-	protected function shouldReturnConsoleResponse()
-	{
-		global $argv; // this fucking sucks omg
-
-		if (isset($argv[0])) {
-			foreach (['phpunit', 'codecept', 'behat', 'phpspec'] as $needle) {
-				if (strpos($argv[0], $needle) !== false) return false;
-			}
-		}
-
-		return $this->app->runningInConsole() && !$this->app->runningUnitTests();
-	}
-
-	/**
 	 * Handle an alert-level logging event.
 	 *
 	 * @param  string $message
@@ -252,21 +159,8 @@ class ErrorHandler
 			$this->app['config']->set('mail.pretend', false);
 		}
 
-		$mailData = array(
-			'logmsg'  => $message,
-			'context' => new LogContextPresenter($context),
-			'info'    => $this->makeInfoPresenter(),
-		);
-
-		$subject = 'Alert logged - ' . $this->app['request']->root();
-		$htmlView = $this->app['config']->get('smarterror::alert-email-view') ?: 'smarterror::alert-email';
-		$plainView = $this->app['config']->get('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
-
-		$callback = function($msg) use($email, $subject) {
-			$msg->to($email)->subject($subject);
-		};
-
-		$this->app['mailer']->send(array($htmlView, $plainView), $mailData, $callback);
+		with(new Mail\AlertLogMailer($this->app, $message, $this->makeLogContextPresenter($context), $this->makeAppInfoGenerator()))
+			->send($email);
 	}
 
 	/**
@@ -281,21 +175,11 @@ class ErrorHandler
 		if (in_array($exception, $this->handledExceptions)) return;
 		$this->handledExceptions[] = $exception;
 
-		$url = $this->app['request']->fullUrl();
-		$referer = $this->app['request']->header('referer') ?: 'none';
+		with(new Log\MissingLogger($this->app['log'], $this->app['request']))
+			->log();
 
-		$this->app['log']->warning("404 for URL $url -- Referer: $referer");
-
-		if ($this->app['config']->get('app.debug') === false) {
-			if ($this->requestIsJson()) {
-				$msg = $this->app['translator']->get('smarterror::missingTitle');
-				return Response::json(['errors' => [$msg]], 404);
-			} else if ($view = $this->app['config']->get('smarterror::missing-view')) {
-				return Response::view($view, array(
-					'referer' => $this->app['request']->header('referer'),
-				), 404);
-			}
-		}
+		return with(new Responders\MissingResponder($this->app))
+			->respond($exception);
 	}
 
 	/**
@@ -310,69 +194,51 @@ class ErrorHandler
 		if (in_array($exception, $this->handledExceptions)) return;
 		$this->handledExceptions[] = $exception;
 
-		$logstr = "CSRF token mismatch (handled by L4SmartErrors)\n";
-		$logstr .= $this->makeInfoPresenter()->renderCompact();
-		$this->app['log']->warning($logstr);
+		with(new Log\CsrfLogger($this->app['log'], $this->makeAppInfoGenerator()))
+			->log();
 
-		// if the request has the referer header, it's safe to redirect back to
-		// the previous page with an error message. this way, no user input
-		// is lost if a browser tab has been left open too long or something
-		$referer = $this->app['request']->header('referer');
-
-		// make sure the referer url is not the same as the current page url,
-		// and that the method is not GET - this prevents a redirect loop
-		$current = $this->app['request']->fullUrl();
-		$method = $this->app['request']->getMethod();
-
-		if ($referer && $referer != $current && $method !== 'get') {
-			return $this->app['redirect']->back()->withInput()
-				->withErrors($this->app['translator']->get('smarterror::error.csrfText'));
-		}
-
-		if ($this->app['config']->get('app.debug') === false) {
-			if ($this->requestIsJson()) {
-				return Response::json(['errors' => [$this->app['translator']->get('smarterror::error.csrfText')]], 400);
-			} else if ($view = $this->app['config']->get('smarterror::csrf-view')) {
-				return Response::view($view, array(
-					'referer' => $this->app['request']->header('referer'),
-				), 400);
-			}
-		}
+		return with(new Responders\CsrfResponder($this->app))
+			->respond($exception);
 	}
 
-	/**
-	 * Make an application information presenter object.
-	 *
-	 * @return \anlutro\L4SmartErrors\AppInfoPresenter
-	 */
-	protected function makeInfoPresenter()
+	protected function makeAllPresenters($exception)
 	{
-		$console = $this->app->runningInConsole();
+		return array(
+			$this->makeExceptionPresenter($exception),
+			$this->makeAppInfoGenerator(),
+			$this->makeInputPresenter(),
+			$this->makeQueryLogPresenter(),
+		);
+	}
 
-		if ($console) {
-			$data = array(
-				'hostname' => gethostname(),
-			);
-		} else {
-			list($routeAction, $routeName) = $this->findRouteNames();
-			$data = array(
-				'url'          => $this->app['request']->fullUrl(),
-				'method'       => $this->app['request']->getMethod(),
-				'route-name'   => $routeName,
-				'route-action' => $routeAction,
-				'client'       => $this->app['request']->getClientIp(),
-				'referer'      => $this->app['request']->header('referer'),
-			);
+	protected function makeExceptionPresenter($exception)
+	{
+		return new Presenters\ExceptionPresenter($exception);
+	}
+
+	protected function makeAppInfoGenerator()
+	{
+		return new AppInfoGenerator($this->app);
+	}
+
+	protected function makeInputPresenter()
+	{
+		$input = $this->app['request']->all();
+		return empty($input) ? null : new Presenters\InputPresenter($input);
+	}
+
+	protected function makeQueryLogPresenter()
+	{
+		if ($this->app['config']->get('smarterror::include-query-log')) {
+			return new Presenters\QueryLogPresenter($this->app['db']->getQueryLog());
 		}
 
-		$data['environment'] = $this->app->environment();
+		return null;
+	}
 
-		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s e';
-		$data['time'] = date($timeFormat);
-
-		$presenter = new AppInfoPresenter($console, $data);
-
-		return $presenter;
+	protected function makeLogContextPresenter(array $context)
+	{
+		return new Presenters\LogContextPresenter($context);
 	}
 
 	/**

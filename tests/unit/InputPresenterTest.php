@@ -5,7 +5,7 @@ class InputPresenterTest extends PHPUnit_Framework_TestCase
 	public function testStringContainsKeyAndValue()
 	{
 		$presenter = $this->makePresenter(array('foo' => 'bar'));
-		$str = $presenter->render();
+		$str = $presenter->renderPlain();
 		$this->assertInternalType('string', $str);
 		$this->assertContains('foo', $str);
 		$this->assertContains('bar', $str);
@@ -14,7 +14,7 @@ class InputPresenterTest extends PHPUnit_Framework_TestCase
 	public function testStringDoesNotContainPreTagWhenHtmlFalse()
 	{
 		$presenter = $this->makePresenter(array('foo' => 'bar'));
-		$str = $presenter->render();
+		$str = $presenter->renderPlain();
 		$this->assertNotContains('<pre', $str);
 	}
 
@@ -27,6 +27,6 @@ class InputPresenterTest extends PHPUnit_Framework_TestCase
 
 	public function makePresenter(array $input)
 	{
-		return new anlutro\L4SmartErrors\InputPresenter($input);
+		return new anlutro\L4SmartErrors\Presenters\InputPresenter($input);
 	}
 }

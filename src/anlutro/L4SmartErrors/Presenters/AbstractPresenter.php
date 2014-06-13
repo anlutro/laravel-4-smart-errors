@@ -7,24 +7,16 @@
  * @package   l4-smart-errors
  */
 
-namespace anlutro\L4SmartErrors;
+namespace anlutro\L4SmartErrors\Presenters;
 
 abstract class AbstractPresenter
 {
-	protected $html = false;
-
-	public function setHtml($toggle)
+	public function renderVarDump($data, $html)
 	{
-		$this->html = (bool) $toggle;
-		return $this;
-	}
-
-	public function renderVarDump($data, $toggle = null)
-	{
-		ob_start();
-
-		$html = $toggle === null ? $this->html : (bool) $toggle;
+		$html = (bool) $html;
 		$xdebugHtml = extension_loaded('xdebug') && php_sapi_name() != 'cli';
+
+		ob_start();
 
 		if ($html === false || $xdebugHtml === true) {
 			var_dump($data);
@@ -39,8 +31,4 @@ abstract class AbstractPresenter
 
 		return $str;
 	}
-
-	public abstract function render();
-	public abstract function renderPlain();
-	public abstract function renderHtml();
 }

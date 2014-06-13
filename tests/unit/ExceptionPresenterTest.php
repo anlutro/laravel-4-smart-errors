@@ -36,7 +36,7 @@ class ExceptionPresenterTest extends PHPUnit_Framework_TestCase
 
 	public function makePresenter(Exception $exception)
 	{
-		return new anlutro\L4SmartErrors\ExceptionPresenter($exception);
+		return new anlutro\L4SmartErrors\Presenters\ExceptionPresenter($exception);
 	}
 }
 

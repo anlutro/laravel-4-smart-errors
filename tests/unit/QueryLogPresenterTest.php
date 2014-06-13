@@ -4,7 +4,7 @@ class QueryLogPresenterTest extends PHPUnit_Framework_TestCase
 {
 	public function makePresenter($log)
 	{
-		return new anlutro\L4SmartErrors\QueryLogPresenter($log);
+		return new anlutro\L4SmartErrors\Presenters\QueryLogPresenter($log);
 	}
 
 	/**
@@ -13,7 +13,7 @@ class QueryLogPresenterTest extends PHPUnit_Framework_TestCase
 	public function testContainsCorrectInformation($log, $expected)
 	{
 		$presenter = $this->makePresenter($log);
-		$str = $presenter->render();
+		$str = $presenter->renderPlain();
 		foreach ($expected as $value) {
 			$this->assertContains($value, $str);
 		}

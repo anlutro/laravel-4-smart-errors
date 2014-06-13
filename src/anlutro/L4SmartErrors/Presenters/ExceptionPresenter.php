@@ -7,7 +7,7 @@
  * @package   l4-smart-errors
  */
 
-namespace anlutro\L4SmartErrors;
+namespace anlutro\L4SmartErrors\Presenters;
 
 use Exception;
 use Xethron\L4ToString;

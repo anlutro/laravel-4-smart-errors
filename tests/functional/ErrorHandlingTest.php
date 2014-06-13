@@ -157,7 +157,7 @@ class ErrorHandlingTest extends PkgAppTestCase
 	public function missingHandling()
 	{
 		$this->mock('log')->shouldReceive('warning')->once()
-			->with('404 for URL http://localhost/does/not/exist -- Referer: none');
+			->with('404 for URL http://localhost/does/not/exist -- Referer: none (handled by L4SmartErrors)');
 		$this->call('get', '/does/not/exist');
 		$response = $this->getResponse();
 		$this->assertEquals(404, $response->getStatusCode());

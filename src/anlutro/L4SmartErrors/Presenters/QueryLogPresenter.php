@@ -7,9 +7,9 @@
  * @package   l4-smart-errors
  */
 
-namespace anlutro\L4SmartErrors;
+namespace anlutro\L4SmartErrors\Presenters;
 
-class QueryLogPresenter extends AbstractPresenter
+class QueryLogPresenter extends AbstractPresenter implements PresenterInterface
 {
 	protected $queryLog;
 
@@ -18,23 +18,19 @@ class QueryLogPresenter extends AbstractPresenter
 		$this->queryLog = $queryLog;
 	}
 
-	public function renderPlain()
-	{
-		return $this->renderVarDump($this->queryLog, false);
-	}
-
 	public function renderHtml()
 	{
 		return $this->renderVarDump($this->queryLog, true);
 	}
 
-	public function render()
+	public function renderPlain()
 	{
-		return $this->html ? $this->renderHtml() : $this->renderPlain();
+		return $this->renderVarDump($this->queryLog, false);
 	}
 
-	public function __toString()
+	public function renderCompact()
 	{
-		return $this->render();
+		// @todo Improve this
+		return json_encode($this->queryLog);
 	}
 }
