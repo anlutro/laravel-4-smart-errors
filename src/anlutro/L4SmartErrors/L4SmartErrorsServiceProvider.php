@@ -91,5 +91,4 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	{
 		return array('smarterror');
 	}
-
 }
