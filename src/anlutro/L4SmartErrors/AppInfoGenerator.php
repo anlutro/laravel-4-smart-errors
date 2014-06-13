@@ -11,7 +11,6 @@ namespace anlutro\L4SmartErrors;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Fluent;
-use anlutro\L4SmartErrors\Presenters\PresenterInterface;
 
 class AppInfoGenerator
 {

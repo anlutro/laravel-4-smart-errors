@@ -9,7 +9,6 @@
 
 namespace anlutro\L4SmartErrors\Responders;
 
-use Illuminate\Foundation\Application;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Response;
 

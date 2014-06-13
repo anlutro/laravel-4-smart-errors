@@ -9,7 +9,6 @@
 
 namespace anlutro\L4SmartErrors\Responders;
 
-use Illuminate\Foundation\Application;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Support\Facades\Response;
 
