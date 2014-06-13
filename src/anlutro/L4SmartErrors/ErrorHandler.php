@@ -96,7 +96,9 @@ class ErrorHandler
 			$env = $this->app->environment();
 
 			$exceptionName = get_class($exception);
-			$exceptionName = substr($exceptionName, strrpos($exceptionName, '\\'));
+			if (($pos = strrpos($exceptionName, '\\')) !== false) {
+				$exceptionName = substr($exceptionName, ($pos + 1));
+			}
 			$subject = "[$env] $exceptionName - ";
 			$subject .= $this->app['request']->root() ?: $this->app['config']->get('app.url');
 			$htmlView = $this->app['config']->get('smarterror::error-email-view') ?: 'smarterror::error-email';
