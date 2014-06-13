@@ -13,7 +13,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Fluent;
 use anlutro\L4SmartErrors\Presenters\PresenterInterface;
 
-class AppInfoGenerator implements PresenterInterface
+class AppInfoGenerator
 {
 	protected $app;
 	protected $data;
