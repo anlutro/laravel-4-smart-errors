@@ -1,4 +1,12 @@
 <?php
+/**
+ * Laravel 4 Smart Errors
+ *
+ * @author    Andreas Lutro <anlutro@gmail.com>
+ * @license   http://opensource.org/licenses/MIT
+ * @package   l4-smart-errors
+ */
+
 namespace anlutro\L4SmartErrors\Mail;
 
 use Illuminate\Foundation\Application;
