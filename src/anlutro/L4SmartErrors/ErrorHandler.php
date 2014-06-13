@@ -174,15 +174,44 @@ class ErrorHandler
 		}
 
 		// if the file is writeable, write the current exception hash into it.
-		if (
-			($files->isFile($path) && $files->isWritable($path))
-			|| ($files->isDirectory(dirname($path)) && $files->isWritable(dirname($path)))
-		) {
+		if ($this->pathIsWriteable($path)) {
 			$data['previous'] = $hash;
 			$files->put($path, json_encode($data));
 		}
 
 		return true;
+	}
+
+	/**
+	 * Determine if a path is writeable or not.
+	 *
+	 * @param  string $path
+	 *
+	 * @return boolean
+	 *
+	 * @throws \InvalidArgumentException
+	 */
+	protected function pathIsWriteable($path)
+	{
+		$files = $this->app['files'];
+
+		if ($files->isDirectory($path)) {
+			throw new \InvalidArgumentException("$path is a directory");
+		}
+
+		// if the file exists, simply check if it is writeable
+		if ($files->isFile($path) && $files->isWritable($path)) {
+			return true;
+		}
+
+		// if not, check if the directory of the path is writeable
+		$dir = dirname($path);
+
+		if ($files->isDirectory($dir) && $files->isWritable($dir)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
