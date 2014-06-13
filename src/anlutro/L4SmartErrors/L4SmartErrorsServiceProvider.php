@@ -42,25 +42,39 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	{
 		$this->package('anlutro/l4-smart-errors', 'smarterror');
 
-		// $this->app in closures won't work in php 5.3
-		$app = $this->app;
+		$this->registerErrorHandler();
+		$this->registerTokenMismatchHandler();
+		$this->registerMissingHandler();
+		$this->registerAlertLogListener();
+	}
 
-		// register the error handler
+	protected function registerErrorHandler()
+	{
+		$app = $this->app;
 		$this->app->error(function(\Exception $exception, $code) use ($app) {
 			return $app['smarterror']->handleException($exception, $code);
 		});
+	}
 
-		// register the csrf handler
+	protected function registerTokenMismatchHandler()
+	{
+		$app = $this->app;
 		$this->app->error(function(TokenMismatchException $exception, $code) use ($app) {
 			return $app['smarterror']->handleTokenMismatch($exception);
 		});
+	}
 
-		// register the 404 handler
+	protected function registerMissingHandler()
+	{
+		$app = $this->app;
 		$this->app->missing(function($exception) use ($app) {
 			return $app['smarterror']->handleMissing($exception);
 		});
+	}
 
-		// register the alert level log listener
+	protected function registerAlertLogListener()
+	{
+		$app = $this->app;
 		$this->app['log']->listen(function($level, $message, $context) use ($app) {
 			if ($level == 'alert') {
 				$app['smarterror']->handleAlert($message, $context);
