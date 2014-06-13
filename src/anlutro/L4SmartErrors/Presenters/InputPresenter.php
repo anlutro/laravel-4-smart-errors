@@ -9,7 +9,7 @@
 
 namespace anlutro\L4SmartErrors\Presenters;
 
-class InputPresenter extends AbstractPresenter implements PresenterInterface
+class InputPresenter extends AbstractPresenter
 {
 	protected $input;
 

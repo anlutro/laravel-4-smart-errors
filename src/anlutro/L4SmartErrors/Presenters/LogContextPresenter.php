@@ -9,7 +9,7 @@
 
 namespace anlutro\L4SmartErrors\Presenters;
 
-class LogContextPresenter extends AbstractPresenter implements PresenterInterface
+class LogContextPresenter extends AbstractPresenter
 {
 	protected $context;
 

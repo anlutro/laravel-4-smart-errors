@@ -9,7 +9,7 @@
 
 namespace anlutro\L4SmartErrors\Presenters;
 
-class QueryLogPresenter extends AbstractPresenter implements PresenterInterface
+class QueryLogPresenter extends AbstractPresenter
 {
 	protected $queryLog;
 
