@@ -24,9 +24,9 @@ class ErrorHandler
 	protected $app;
 
 	/**
-	 * @var array
+	 * @var \SplObjectStorage
 	 */
-	protected $handledExceptions = array();
+	protected $handledExceptions;
 
 	/**
 	 * @param \Illuminate\Foundation\Application $app
@@ -34,6 +34,7 @@ class ErrorHandler
 	public function __construct(Application $app)
 	{
 		$this->app = $app;
+		$this->handledExceptions = new \SplObjectStorage;
 	}
 
 	/**
@@ -47,8 +48,8 @@ class ErrorHandler
 	 */
 	public function handleException($exception, $code = null)
 	{
-		if (in_array($exception, $this->handledExceptions)) return;
-		$this->handledExceptions[] = $exception;
+		if ($this->handledExceptions->contains($exception)) return;
+		$this->handledExceptions->attach($exception);
 
 		list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter) = $this->makeAllPresenters($exception);
 
@@ -172,8 +173,8 @@ class ErrorHandler
 	 */
 	public function handleMissing($exception)
 	{
-		if (in_array($exception, $this->handledExceptions)) return;
-		$this->handledExceptions[] = $exception;
+		if ($this->handledExceptions->contains($exception)) return;
+		$this->handledExceptions->attach($exception);
 
 		with(new Log\MissingLogger($this->app['log'], $this->app['request']))
 			->log();
@@ -191,8 +192,8 @@ class ErrorHandler
 	 */
 	public function handleTokenMismatch($exception)
 	{
-		if (in_array($exception, $this->handledExceptions)) return;
-		$this->handledExceptions[] = $exception;
+		if ($this->handledExceptions->contains($exception)) return;
+		$this->handledExceptions->attach($exception);
 
 		with(new Log\CsrfLogger($this->app['log'], $this->makeAppInfoGenerator()))
 			->log();
