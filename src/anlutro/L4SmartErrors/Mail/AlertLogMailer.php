@@ -20,8 +20,12 @@ class AlertLogMailer
 	protected $context;
 	protected $appInfo;
 
-	public function __construct(Application $app, $message, LogContextPresenter $context, AppInfoGenerator $appInfo)
-	{
+	public function __construct(
+		Application $app,
+		$message,
+		LogContextPresenter $context,
+		AppInfoGenerator $appInfo
+	) {
 		$this->app = $app;
 		$this->message = $message;
 		$this->context = $context;
