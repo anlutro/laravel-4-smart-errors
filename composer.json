@@ -25,5 +25,5 @@
             "anlutro\\L4SmartErrors": "src/"
         }
     },
-    "minimum-stability": "stable"
+    "prefer-stable": true
 }

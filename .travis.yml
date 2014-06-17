@@ -10,8 +10,15 @@ matrix:
   allow_failures:
     - php: hhvm
 
+env:
+  - FRAMEWORK_VERSION="4.1.*" SKELETON_VERSION="4.1.*"
+  - FRAMEWORK_VERSION="4.2.*" SKELETON_VERSION="4.2.*"
+  - FRAMEWORK_VERSION="4.3.*@dev" SKELETON_VERSION="dev-develop@dev"
+
 before_script:
   - curl -s http://getcomposer.org/installer | php
-  - php composer.phar install --dev
+  - php composer.phar require laravel/framework:${FRAMEWORK_VERSION} --no-update
+  - php composer.phar require laravel/laravel:${SKELETON_VERSION} --dev --no-update
+  - php composer.phar install --dev --prefer-dist
 
 script: phpunit
