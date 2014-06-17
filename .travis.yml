@@ -6,10 +6,6 @@ php:
   - 5.6
   - hhvm
 
-matrix:
-  allow_failures:
-    - php: hhvm
-
 env:
   - FRAMEWORK_VERSION="4.1.*" SKELETON_VERSION="4.1.*"
   - FRAMEWORK_VERSION="4.2.*" SKELETON_VERSION="4.2.*"
