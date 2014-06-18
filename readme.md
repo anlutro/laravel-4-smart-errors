@@ -1,5 +1,4 @@
-# Laravel 4 Smart Errors
-[![Build Status](https://travis-ci.org/anlutro/laravel-4-smart-errors.png?branch=master)](https://travis-ci.org/anlutro/laravel-4-smart-errors)  [![Latest Version](http://img.shields.io/github/tag/anlutro/laravel-4-smart-errors.svg)](https://github.com/anlutro/laravel-4-smart-errors/releases)
+# Laravel 4 Smart Errors [![Build Status](https://travis-ci.org/anlutro/laravel-4-smart-errors.png?branch=master)](https://travis-ci.org/anlutro/laravel-4-smart-errors)  [![Latest Version](http://img.shields.io/github/tag/anlutro/laravel-4-smart-errors.svg)](https://github.com/anlutro/laravel-4-smart-errors/releases)
 
 Small system for showing a very generic error message to your end-users while sending an email to yourself with all relevant information about the exception.
 
@@ -29,25 +28,36 @@ To keep behaviour as is in 2.1, make sure the config file is published, then cha
 	'missing-view' => 'smarterror::missing',
 
 ## Usage
+
 When the package has been downloaded, add the following to the list of service providers in app/config/app.php:
 
 	'anlutro\L4SmartErrors\L4SmartErrorsServiceProvider',
 
 Run `php artisan config:publish anlutro/l4-smart-errors` and open the config file that has been generated. Modify it to your needs. Copy the lang and/or views directories from the vendor directory if you want some templates to work with.
 
-Remove any App::error and App::missing you may have in your application to prevent conflicts. If you want to handle specific types of Exceptions yourself, you can add App::error closures with those specific exceptions as arguments.
+Remove any App::error and App::missing you may have in your application to prevent conflicts. If you want to handle specific types of Exceptions yourself, you can add `App::error` closures with those specific exceptions as arguments. Exceptions handled using `App::error` will not be e-mailed or logged by this package.
 
-If you want to mail yourself on an error but not dump the user to a generic error screen, you can do so via the facade:
+Exceptions are e-mailed as long as the `dev-email` key is filled out in the package config file. Make sure that your mail.php config file is correct - test it with a regular `Mail::send()`. If your mailer is incorrectly configured, you may get a blank "error in exception handler" screen upon errors.
 
-	$result = \anlutro\L4SmartErrors\SmartError::handleException($exception);
+If you want the package to send the email and log the exception data, but you want to return a custom view as a response to the end user, you can set `'error-view' => null` in the package config.php, and add the following to your app/start/global.php:
 
-`handleException` will return the generic error view if you'd like to use it for something.
+```php
+App::pushError(function() {
+    if (App::runningInConsole() || Config::get('app.debug')) return;
+    return Response::view('my-error-view', [...], 500);
+});
+```
+
+Using `pushError` instead of `error` makes sure that it's pushed to the end of the exception handler stack, giving the package's error handler priority over yours.
 
 # Contribution
+
 I'll accept language files right away without discussion. For anything else, please be descriptive in your pull requests.
 
 # Contact
+
 Open an issue on GitHub if you have any problems or suggestions.
 
 # License
+
 The contents of this repository is released under the [MIT license](http://opensource.org/licenses/MIT).
