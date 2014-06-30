@@ -52,6 +52,7 @@ class AppInfoGenerator
 	 */
 	protected function findRouteNames()
 	{
+		/** @var \Illuminate\Routing\Route|null $route */
 		$route = $this->app['router']->current();
 
 		if (!$route) {

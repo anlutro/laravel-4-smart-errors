@@ -12,6 +12,7 @@ namespace anlutro\L4SmartErrors\Mail;
 use Illuminate\Foundation\Application;
 use anlutro\L4SmartErrors\AppInfoGenerator;
 use anlutro\L4SmartErrors\Presenters\LogContextPresenter;
+use Illuminate\Mail\Message;
 
 class AlertLogMailer
 {
@@ -46,7 +47,7 @@ class AlertLogMailer
 		$htmlView = $this->app['config']->get('smarterror::alert-email-view') ?: 'smarterror::alert-email';
 		$plainView = $this->app['config']->get('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
 
-		$callback = function($msg) use($email, $subject) {
+		$callback = function(Message $msg) use($email, $subject) {
 			$msg->to($email)->subject($subject);
 		};
 

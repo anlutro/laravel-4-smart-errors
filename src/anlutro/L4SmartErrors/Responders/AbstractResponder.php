@@ -46,6 +46,7 @@ abstract class AbstractResponder
 	protected function requestIsJson()
 	{
 		$request = $this->app['request'];
+
 		return $request->wantsJson() || $request->isJson() || $request->ajax();
 	}
 }

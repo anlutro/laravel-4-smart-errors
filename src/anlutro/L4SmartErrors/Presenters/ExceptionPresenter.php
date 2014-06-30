@@ -85,6 +85,6 @@ class ExceptionPresenter
 
 	public function __toString()
 	{
-		return $this->renderExceptionInfo() . "\n\n" . $this->renderStackTrace();
+		return $this->getExceptionInfo() . "\n\n" . $this->renderTracePlain();
 	}
 }

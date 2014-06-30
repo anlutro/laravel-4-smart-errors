@@ -45,11 +45,11 @@ class ErrorHandler
 	 * @param  \Exception $exception
 	 * @param  integer   $code
 	 *
-	 * @return \Illuminate\Http\Response|void
+	 * @return \Illuminate\Http\Response|null
 	 */
 	public function handleException(Exception $exception, $code = null)
 	{
-		if ($this->exceptionHasBeenHandled($exception)) return;
+		if ($this->exceptionHasBeenHandled($exception)) return null;
 
 		list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter) = $this->makeAllPresenters($exception);
 
@@ -96,11 +96,11 @@ class ErrorHandler
 	 *
 	 * @param  \Symfony\Component\HttpKernel\Exception\NotFoundHttpException $exception
 	 *
-	 * @return \Illuminate\Http\Response|void
+	 * @return \Illuminate\Http\Response|null
 	 */
 	public function handleMissing(NotFoundHttpException $exception)
 	{
-		if ($this->exceptionHasBeenHandled($exception)) return;
+		if ($this->exceptionHasBeenHandled($exception)) return null;
 
 		with(new Log\MissingLogger($this->app['log'], $this->app['request']))
 			->log();
@@ -114,11 +114,11 @@ class ErrorHandler
 	 *
 	 * @param  \Illuminate\Session\TokenMismatchException $exception
 	 *
-	 * @return \Illuminate\Http\Response|void
+	 * @return \Illuminate\Http\Response|null
 	 */
 	public function handleTokenMismatch(TokenMismatchException $exception)
 	{
-		if ($this->exceptionHasBeenHandled($exception)) return;
+		if ($this->exceptionHasBeenHandled($exception)) return null;
 
 		with(new Log\CsrfLogger($this->app['log'], $this->makeAppInfoGenerator()))
 			->log();
@@ -261,6 +261,7 @@ class ErrorHandler
 	protected function makeInputPresenter()
 	{
 		$input = $this->app['request']->all();
+
 		return empty($input) ? null : new Presenters\InputPresenter($input);
 	}
 

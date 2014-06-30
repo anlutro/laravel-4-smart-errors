@@ -15,6 +15,7 @@ use anlutro\L4SmartErrors\AppInfoGenerator;
 use anlutro\L4SmartErrors\Presenters\ExceptionPresenter;
 use anlutro\L4SmartErrors\Presenters\InputPresenter;
 use anlutro\L4SmartErrors\Presenters\QueryLogPresenter;
+use Illuminate\Mail\Message;
 
 class ExceptionMailer
 {
@@ -57,7 +58,7 @@ class ExceptionMailer
 		$htmlView = $this->app['config']->get('smarterror::error-email-view') ?: 'smarterror::error-email';
 		$plainView = $this->app['config']->get('smarterror::error-email-view-plain') ?: 'smarterror::error-email-plain';
 
-		$callback = function($msg) use($email, $subject) {
+		$callback = function(Message $msg) use($email, $subject) {
 			$msg->to($email)->subject($subject);
 		};
 
