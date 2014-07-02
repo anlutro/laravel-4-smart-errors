@@ -28,7 +28,7 @@ class CsrfResponder extends AbstractResponder
 		$current = $request->fullUrl();
 		$method = $request->getMethod();
 
-		if ($referer && $referer != $current && $method !== 'get') {
+		if ($referer && $referer != $current && $method != 'GET') {
 			return $this->app['redirect']->back()->withInput()
 				->withErrors($this->app['translator']->get('smarterror::error.csrfText'));
 		}
