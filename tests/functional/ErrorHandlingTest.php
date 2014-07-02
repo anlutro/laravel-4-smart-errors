@@ -167,20 +167,70 @@ class ErrorHandlingTest extends PkgAppTestCase
 		);
 	}
 
-	/** @test */
-	public function csrfHandling()
+	/**
+	 * @test
+	 * @dataProvider getCsrfRequestData
+	 */
+	public function csrfHandling($method, $referer = null)
 	{
 		$this->app['router']->enableFilters();
 		$this->app['session']->set('_token', 'realtoken');
-		$this->app['router']->post('/csrf-mismatch', ['before' => 'csrf', function() { return 'Success!'; }]);
+		$this->app['router']->any('/csrf-mismatch', ['before' => 'csrf', function() { return 'Success!'; }]);
+		$this->app['router']->any('/csrf-mismatch-2', ['before' => 'csrf', function() { return 'Success!'; }]);
 		$this->mock('log')->shouldReceive('warning')->once();
-		$this->call('post', '/csrf-mismatch', ['_token' => 'faketoken']);
+		if ($referer) {
+			$this->client->setServerParameter('HTTP_REFERER', $referer);
+		}
+		$this->call($method, '/csrf-mismatch', ['_token' => 'faketoken']);
 		$response = $this->getResponse();
+		$this->assertInstanceOf('Illuminate\Http\Response', $response);
 		$this->assertEquals(400, $response->getStatusCode());
 		$this->assertContains(
 			$this->app['translator']->get('smarterror::error.csrfTitle'),
 			$response->getContent()
 		);
+	}
+
+	public function getCsrfRequestData()
+	{
+		return [
+			['post', null],
+			['post', 'http://localhost/csrf-mismatch'],
+			['get', 'http://localhost/csrf-mismatch-2'],
+		];
+	}
+
+	/** @test */
+	public function csrfHandlingWithRedirect()
+	{
+		$this->app['router']->enableFilters();
+		$this->app['session']->set('_token', 'realtoken');
+		$this->app['router']->post('/csrf-mismatch', ['before' => 'csrf', function() { return 'Success!'; }]);
+		$this->mock('log')->shouldReceive('warning')->once();
+		$this->client->setServerParameter('HTTP_REFERER', '/foo/bar');
+		$this->call('post', '/csrf-mismatch', ['_token' => 'faketoken']);
+		$response = $this->getResponse();
+		$this->assertInstanceOf('Illuminate\Http\RedirectResponse', $response);
+		$this->assertEquals(302, $response->getStatusCode());
+		$this->assertEquals('/foo/bar', $response->getTargetUrl());
+	}
+
+	/** @test */
+	public function csrfJsonHandling()
+	{
+		$this->app['router']->enableFilters();
+		$this->app['session']->set('_token', 'realtoken');
+		$this->app['router']->post('/csrf-mismatch', ['before' => 'csrf', function() { return 'Success!'; }]);
+		$this->mock('log')->shouldReceive('warning')->once();
+		$this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
+		$this->client->setServerParameter('HTTP_CONTENT_TYPE', 'application/json');
+		$this->client->setServerParameter('HTTP_ACCEPT', 'application/json');
+		$this->call('post', '/csrf-mismatch', ['_token' => 'faketoken']);
+		$response = $this->getResponse();
+		$this->assertInstanceOf('Illuminate\Http\JsonResponse', $response);
+		$this->assertEquals(400, $response->getStatusCode());
+		$data = $response->getData();
+		$this->assertEquals([$this->app['translator']->get('smarterror::error.csrfText')], $data->errors);
 	}
 
 	/** @test */
