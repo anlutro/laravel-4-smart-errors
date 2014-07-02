@@ -35,6 +35,10 @@ class AlertLogMailer
 
 	public function send($email)
 	{
+		if ($this->app['config']->get('smarterror::force-email')) {
+			$this->app['config']->set('mail.pretend', false);
+		}
+
 		$mailData = array(
 			'logmsg'  => $this->message,
 			'context' => $this->context,
