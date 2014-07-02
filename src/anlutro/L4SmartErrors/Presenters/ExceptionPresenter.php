@@ -27,15 +27,20 @@ class ExceptionPresenter
 		}
 	}
 
-	public function setDescriptive($toggle)
+	public function getException()
 	{
-		$this->descriptive = (bool) $toggle;
-		return $this;
+		return $this->exception;
 	}
 
 	public function getPrevious()
 	{
 		return $this->previous;
+	}
+
+	public function setDescriptive($toggle)
+	{
+		$this->descriptive = (bool) $toggle;
+		return $this;
 	}
 
 	public function renderInfoPlain()

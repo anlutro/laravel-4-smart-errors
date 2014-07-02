@@ -60,7 +60,7 @@ class ErrorHandler
 
 		if ($email && $this->shouldSendEmail($exception)) {
 			with(new Mail\ExceptionMailer($this->app, $exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter))
-				->send($exception, $email);
+				->send($email);
 		}
 
 		return with(new Responders\ExceptionResponder($this->app))

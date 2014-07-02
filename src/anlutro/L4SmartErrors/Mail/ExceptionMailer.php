@@ -33,9 +33,9 @@ class ExceptionMailer
 		$this->queryLog = $queryLog;
 	}
 
-	public function send(Exception $exception, $email)
+	public function send($email)
 	{
-		if ($this->app['config']->get('smarterror::force-email') !== false) {
+		if ($this->app['config']->get('smarterror::force-email')) {
 			$this->app['config']->set('mail.pretend', false);
 		}
 
@@ -52,7 +52,7 @@ class ExceptionMailer
 
 		$env = $this->app->environment();
 
-		$exceptionName = $this->getExceptionBaseName($exception);
+		$exceptionName = $this->getExceptionBaseName($this->exception->getException());
 		$subject = "[$env] $exceptionName - ";
 		$subject .= $this->app['request']->root() ?: $this->app['config']->get('app.url');
 		$htmlView = $this->app['config']->get('smarterror::error-email-view') ?: 'smarterror::error-email';
