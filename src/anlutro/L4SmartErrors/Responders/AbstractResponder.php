@@ -10,6 +10,7 @@
 namespace anlutro\L4SmartErrors\Responders;
 
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 
 abstract class AbstractResponder
 {
@@ -43,9 +44,9 @@ abstract class AbstractResponder
 	 *
 	 * @return bool
 	 */
-	protected function requestIsJson()
+	protected function requestIsJson(Request $request = null)
 	{
-		$request = $this->app['request'];
+		if ($request === null) $request = $this->app['request'];
 
 		return $request->wantsJson() || $request->isJson() || $request->ajax();
 	}

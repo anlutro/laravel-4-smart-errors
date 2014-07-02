@@ -225,6 +225,7 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 		$this->client->setServerParameter('HTTP_CONTENT_TYPE', 'application/json');
 		$this->client->setServerParameter('HTTP_ACCEPT', 'application/json');
+		$this->client->setServerParameter('HTTP_REFERER', '/foo/bar');
 		$this->call('post', '/csrf-mismatch', ['_token' => 'faketoken']);
 		$response = $this->getResponse();
 		$this->assertInstanceOf('Illuminate\Http\JsonResponse', $response);

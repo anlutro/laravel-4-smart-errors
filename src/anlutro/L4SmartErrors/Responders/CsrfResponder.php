@@ -16,7 +16,14 @@ class CsrfResponder extends AbstractResponder
 {
 	public function respond(TokenMismatchException $exception)
 	{
+		$notDebug = $this->app['config']->get('app.debug') === false;
+
 		$request = $this->app['request'];
+
+		if ($notDebug && $this->requestIsJson($request)) {
+			return Response::json(array('errors' => array($this->app['translator']->get('smarterror::error.csrfText'))), 400);
+		}
+
 
 		// if the request has the referer header, it's safe to redirect back to
 		// the previous page with an error message. this way, no user input
@@ -33,14 +40,10 @@ class CsrfResponder extends AbstractResponder
 				->withErrors($this->app['translator']->get('smarterror::error.csrfText'));
 		}
 
-		if ($this->app['config']->get('app.debug') === false) {
-			if ($this->requestIsJson()) {
-				return Response::json(array('errors' => array($this->app['translator']->get('smarterror::error.csrfText'))), 400);
-			} else if ($view = $this->app['config']->get('smarterror::csrf-view')) {
-				return Response::view($view, array(
-					'referer' => $request->header('referer'),
-				), 400);
-			}
+		if ($notDebug && $view = $this->app['config']->get('smarterror::csrf-view')) {
+			return Response::view($view, array(
+				'referer' => $request->header('referer'),
+			), 400);
 		}
 	}
 }
