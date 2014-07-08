@@ -43,5 +43,5 @@ return array(
 	'include-query-log' => false,
 
 	// path to JSON file where metadata is stored.
-	'storage-path' => app_path().'/storage/l4-smart-errors.json',
+	'storage-path' => storage_path('meta/l4-smart-errors.json'),
 );
