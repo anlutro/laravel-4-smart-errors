@@ -89,7 +89,14 @@ class AppInfoGenerator
 			}
 		}
 
+		$this->strings += $this->getExtraStrings();
+
 		return $this->strings;
+	}
+
+	protected function getExtraStrings()
+	{
+		return [];
 	}
 
 	public function renderPlain()

@@ -245,4 +245,21 @@ class ErrorHandlingTest extends PkgAppTestCase
 		// put these on the same line to make sure stack traces are identical
 		$this->call('get', '/exception'); $this->call('get', '/exception');
 	}
+
+	/** @test */
+	public function customAppInfoGenerator()
+	{
+		$this->app->bind('anlutro\L4SmartErrors\AppInfoGenerator',
+			__NAMESPACE__.'\CustomAppInfoGenerator');
+		$this->expectMailBodiesContain(['Custom info added!']);
+		$this->call('get', '/exception');
+	}
+}
+
+class CustomAppInfoGenerator extends \anlutro\L4SmartErrors\AppInfoGenerator
+{
+	public function getExtraStrings()
+	{
+		return ['foo' => 'Custom info added!'];
+	}
 }

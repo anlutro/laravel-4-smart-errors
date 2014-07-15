@@ -51,19 +51,22 @@ class ErrorHandler
 	{
 		if ($this->exceptionHasBeenHandled($exception)) return null;
 
-		list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter) = $this->makeAllPresenters($exception);
+		list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter)
+			= $this->makeAllPresenters($exception);
 
-		with(new Log\ExceptionLogger($this->app['log'], $appInfoPresenter, $inputPresenter))
+		$this->app->make('anlutro\L4SmartErrors\Log\ExceptionLogger',
+			[$this->app['log'], $appInfoPresenter, $inputPresenter])
 			->log($exception);
 
 		$email = $this->app['config']->get('smarterror::dev-email');
 
 		if ($email && $this->shouldSendEmail($exception)) {
-			with(new Mail\ExceptionMailer($this->app, $exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter))
+			$this->app->make('anlutro\L4SmartErrors\Mail\ExceptionMailer',
+				[$this->app, $exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter])
 				->send($email);
 		}
 
-		return with(new Responders\ExceptionResponder($this->app))
+		return $this->app->make('anlutro\L4SmartErrors\Responders\ExceptionResponder', [$this->app])
 			->respond($exception);
 	}
 
@@ -87,7 +90,8 @@ class ErrorHandler
 			$this->app['config']->set('mail.pretend', false);
 		}
 
-		with(new Mail\AlertLogMailer($this->app, $message, $this->makeLogContextPresenter($context), $this->makeAppInfoGenerator()))
+		$this->app->make('anlutro\L4SmartErrors\Mail\AlertLogMailer',
+			[$this->app, $message, $this->makeLogContextPresenter($context), $this->makeAppInfoGenerator()])
 			->send($email);
 	}
 
@@ -102,10 +106,10 @@ class ErrorHandler
 	{
 		if ($this->exceptionHasBeenHandled($exception)) return null;
 
-		with(new Log\MissingLogger($this->app['log'], $this->app['request']))
+		$this->app->make('anlutro\L4SmartErrors\Log\MissingLogger', [$this->app['log'], $this->app['request']])
 			->log();
 
-		return with(new Responders\MissingResponder($this->app))
+		return $this->app->make('anlutro\L4SmartErrors\Responders\MissingResponder', [$this->app])
 			->respond($exception);
 	}
 
@@ -120,10 +124,11 @@ class ErrorHandler
 	{
 		if ($this->exceptionHasBeenHandled($exception)) return null;
 
-		with(new Log\CsrfLogger($this->app['log'], $this->makeAppInfoGenerator()))
+		$this->app->make('anlutro\L4SmartErrors\Log\CsrfLogger',
+			[$this->app['log'], $this->makeAppInfoGenerator()])
 			->log();
 
-		return with(new Responders\CsrfResponder($this->app))
+		return $this->app->make('anlutro\L4SmartErrors\Responders\CsrfResponder', [$this->app])
 			->respond($exception);
 	}
 
@@ -240,7 +245,8 @@ class ErrorHandler
 	 */
 	protected function makeExceptionPresenter($exception)
 	{
-		return new Presenters\ExceptionPresenter($exception);
+		return $this->app->make('anlutro\L4SmartErrors\Presenters\ExceptionPresenter',
+			[$exception]);
 	}
 
 	/**
@@ -250,7 +256,8 @@ class ErrorHandler
 	 */
 	protected function makeAppInfoGenerator()
 	{
-		return new AppInfoGenerator($this->app);
+		return $this->app->make('anlutro\L4SmartErrors\AppInfoGenerator',
+			[$this->app]);
 	}
 
 	/**
@@ -262,7 +269,12 @@ class ErrorHandler
 	{
 		$input = $this->app['request']->all();
 
-		return empty($input) ? null : new Presenters\InputPresenter($input);
+		if (count($input) < 1) {
+			return null;
+		}
+
+		return $this->app->make('anlutro\L4SmartErrors\Presenters\InputPresenter',
+			[$input]);
 	}
 
 	/**
@@ -273,11 +285,12 @@ class ErrorHandler
 	 */
 	protected function makeQueryLogPresenter()
 	{
-		if ($this->app['config']->get('smarterror::include-query-log')) {
-			return new Presenters\QueryLogPresenter($this->app['db']->getQueryLog());
+		if (!$this->app['config']->get('smarterror::include-query-log')) {
+			return null;
 		}
 
-		return null;
+		return $this->app->make('anlutro\L4SmartErrors\Presenters\QueryLogPresenter',
+			[$this->app['db']->getQueryLog()]);
 	}
 
 	/**
@@ -287,6 +300,7 @@ class ErrorHandler
 	 */
 	protected function makeLogContextPresenter(array $context)
 	{
-		return new Presenters\LogContextPresenter($context);
+		return $this->app->make('anlutro\L4SmartErrors\Presenters\LogContextPresenter',
+			[$context]);
 	}
 }
