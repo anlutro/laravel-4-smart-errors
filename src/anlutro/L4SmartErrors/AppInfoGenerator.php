@@ -72,7 +72,7 @@ class AppInfoGenerator
 		$this->strings[] = 'Hostname: ' . $this->data['hostname'];
 		$this->strings[] = 'Time: ' . $this->data['time'];
 
-		if (!$this->app->runningInConsole()) {
+		if ($this->app->runningInConsole()) {
 			$this->strings[] = 'Console script';
 		} else {
 			$this->strings[] = 'Client: ' . $this->data['client'];
