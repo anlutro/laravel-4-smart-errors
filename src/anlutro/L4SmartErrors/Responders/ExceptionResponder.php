@@ -19,7 +19,7 @@ class ExceptionResponder extends AbstractResponder
 	public function respond(Exception $exception)
 	{
 		// the default laravel console error handler really sucks - override it
-		if ($this->shouldReturnConsoleResponse()) {
+		if ($this->isConsole()) {
 			// if log_error is false and error_log is not set, fatal errors
 			// should go to STDERR which, in the cli environment, is STDOUT
 			if (

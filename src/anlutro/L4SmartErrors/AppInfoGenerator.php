@@ -11,38 +11,59 @@ namespace anlutro\L4SmartErrors;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Fluent;
+use anlutro\L4SmartErrors\Traits\ConsoleCheckingTrait;
 
 class AppInfoGenerator
 {
-	protected $app;
-	protected $data;
-	protected $strings = array();
+	use ConsoleCheckingTrait;
 
-	public function __construct(Application $app)
+	protected $app;
+	protected $console;
+	protected $data = array();
+
+	public function __construct(Application $app, $console = null)
 	{
 		$this->app = $app;
-		$this->data = new Fluent;
+
+		$this->console = $console === null ? $this->isConsole() : (bool) $console;
+
 		$this->generate();
 	}
 
 	protected function generate()
 	{
-		$this->data['hostname']    = gethostname();
-		$this->data['environment'] = $this->app->environment();
-
-		if (!$this->app->runningInConsole()) {
-			$this->data['url']     = $this->app['request']->fullUrl();
-			$this->data['method']  = $this->app['request']->getMethod();
-			$this->data['client']  = $this->app['request']->getClientIp();
-			$this->data['referer'] = $this->app['request']->header('referer');
-
-			list($routeAction, $routeName) = $this->findRouteNames();
-			$this->data['route-name']   = $routeName;
-			$this->data['route-action'] = $routeAction;
-		}
+		$this->addData('Environment', $this->app->environment());
+		$this->addData('Hostname', gethostname());
 
 		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s e';
-		$this->data['time'] = date($timeFormat);
+		$this->addData('Time', date($timeFormat));
+
+		if ($this->console) {
+			$this->addPlainData('Console script');
+		} else {
+			$this->addData('URL', $this->app['request']->fullUrl());
+			$this->addData('HTTP method', $this->app['request']->getMethod());
+			$this->addData('Referer', $this->app['request']->header('referer') ?: 'None');
+			$this->addData('Client IP', $this->app['request']->getClientIp());
+
+			list($routeAction, $routeName) = $this->findRouteNames();
+			if ($routeName)   $this->addData('Route name', $routeName);
+			if ($routeAction) $this->addData('Route action', $routeAction);
+		}
+	}
+
+	protected function addData($key, $value = null)
+	{
+		if (!$value) return;
+
+		$this->data[$key] = $value;
+	}
+
+	protected function addPlainData($value)
+	{
+		if (!$value) return;
+
+		$this->data[] = $value;
 	}
 
 	/**
@@ -62,36 +83,17 @@ class AppInfoGenerator
 		}
 	}
 
-	public function getStrings()
+	public function getRenderableStrings()
 	{
-		if (!empty($this->strings)) {
-			return $this->strings;
-		}
+		$strings = $this->data + $this->getExtraStrings();
 
-		$this->strings[] = 'Environment: ' . $this->data['environment'];
-		$this->strings[] = 'Hostname: ' . $this->data['hostname'];
-		$this->strings[] = 'Time: ' . $this->data['time'];
-
-		if ($this->app->runningInConsole()) {
-			$this->strings[] = 'Console script';
-		} else {
-			$this->strings[] = 'Client: ' . $this->data['client'];
-			$this->strings[] = 'URL: ' . $this->data['url'];
-			$this->strings[] = 'HTTP method: ' . $this->data['method'];
-			$this->strings[] = 'Referer: ' . $this->data['referer'];
-
-			if ($this->data['route-action']) {
-				$this->strings[] = 'Route action: ' . $this->data['route-action'];
+		return array_map(function($value, $key) {
+			if (is_string($key)) {
+				return ucfirst($key).': '.$value;
+			} else {
+				return ucfirst($value);
 			}
-
-			if ($this->data['route-name']) {
-				$this->strings[] = 'Route name: ' . $this->data['route-name'];
-			}
-		}
-
-		$this->strings += $this->getExtraStrings();
-
-		return $this->strings;
+		}, $strings, array_keys($strings));
 	}
 
 	protected function getExtraStrings()
@@ -101,16 +103,16 @@ class AppInfoGenerator
 
 	public function renderPlain()
 	{
-		return implode("\n", $this->getStrings());
+		return implode("\n", $this->getRenderableStrings());
 	}
 
 	public function renderHtml()
 	{
-		return implode('<br>', $this->getStrings());
+		return implode('<br>', $this->getRenderableStrings());
 	}
 
 	public function renderCompact()
 	{
-		return implode(' -- ', $this->getStrings());
+		return implode(' -- ', $this->getRenderableStrings());
 	}
 }

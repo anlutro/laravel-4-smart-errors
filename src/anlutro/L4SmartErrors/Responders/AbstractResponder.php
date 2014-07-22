@@ -11,32 +11,17 @@ namespace anlutro\L4SmartErrors\Responders;
 
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use anlutro\L4SmartErrors\Traits\ConsoleCheckingTrait;
 
 abstract class AbstractResponder
 {
+	use ConsoleCheckingTrait;
+
 	protected $app;
 
 	public function __construct(Application $app)
 	{
 		$this->app = $app;
-	}
-
-	/**
-	 * Determine whether a console response should be returned.
-	 *
-	 * @return boolean
-	 */
-	protected function shouldReturnConsoleResponse()
-	{
-		global $argv; // this fucking sucks omg
-
-		if (isset($argv[0])) {
-			foreach (array('phpunit', 'codecept', 'behat', 'phpspec') as $needle) {
-				if (strpos($argv[0], $needle) !== false) return false;
-			}
-		}
-
-		return $this->app->runningInConsole() && !$this->app->runningUnitTests();
 	}
 
 	/**
