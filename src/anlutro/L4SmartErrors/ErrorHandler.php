@@ -49,25 +49,29 @@ class ErrorHandler
 	 */
 	public function handleException(Exception $exception, $code = null)
 	{
-		if ($this->exceptionHasBeenHandled($exception)) return null;
+		try {
+			if ($this->exceptionHasBeenHandled($exception)) return null;
 
-		list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter)
-			= $this->makeAllPresenters($exception);
+			list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter)
+				= $this->makeAllPresenters($exception);
 
-		$this->app->make('anlutro\L4SmartErrors\Log\ExceptionLogger',
-			[$this->app['log'], $appInfoPresenter, $inputPresenter])
-			->log($exception);
+			$this->app->make('anlutro\L4SmartErrors\Log\ExceptionLogger',
+				[$this->app['log'], $appInfoPresenter, $inputPresenter])
+				->log($exception);
 
-		$email = $this->app['config']->get('smarterror::dev-email');
+			$email = $this->app['config']->get('smarterror::dev-email');
 
-		if ($email && $this->shouldSendEmail($exception)) {
-			$this->app->make('anlutro\L4SmartErrors\Mail\ExceptionMailer',
-				[$this->app, $exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter])
-				->send($email);
+			if ($email && $this->shouldSendEmail($exception)) {
+				$this->app->make('anlutro\L4SmartErrors\Mail\ExceptionMailer',
+					[$this->app, $exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter])
+					->send($email);
+			}
+
+			return $this->app->make('anlutro\L4SmartErrors\Responders\ExceptionResponder', [$this->app])
+				->respond($exception);
+		} catch (Exception $e) {
+			return $this->handleHandlerException($e);
 		}
-
-		return $this->app->make('anlutro\L4SmartErrors\Responders\ExceptionResponder', [$this->app])
-			->respond($exception);
 	}
 
 	/**
@@ -104,13 +108,17 @@ class ErrorHandler
 	 */
 	public function handleMissing(NotFoundHttpException $exception)
 	{
-		if ($this->exceptionHasBeenHandled($exception)) return null;
+		try {
+			if ($this->exceptionHasBeenHandled($exception)) return null;
 
-		$this->app->make('anlutro\L4SmartErrors\Log\MissingLogger', [$this->app['log'], $this->app['request']])
-			->log();
+			$this->app->make('anlutro\L4SmartErrors\Log\MissingLogger', [$this->app['log'], $this->app['request']])
+				->log();
 
-		return $this->app->make('anlutro\L4SmartErrors\Responders\MissingResponder', [$this->app])
-			->respond($exception);
+			return $this->app->make('anlutro\L4SmartErrors\Responders\MissingResponder', [$this->app])
+				->respond($exception);
+		} catch (Exception $e) {
+			return $this->handleHandlerException($e);
+		}
 	}
 
 	/**
@@ -122,14 +130,18 @@ class ErrorHandler
 	 */
 	public function handleTokenMismatch(TokenMismatchException $exception)
 	{
-		if ($this->exceptionHasBeenHandled($exception)) return null;
+		try {
+			if ($this->exceptionHasBeenHandled($exception)) return null;
 
-		$this->app->make('anlutro\L4SmartErrors\Log\CsrfLogger',
-			[$this->app['log'], $this->makeAppInfoGenerator()])
-			->log();
+			$this->app->make('anlutro\L4SmartErrors\Log\CsrfLogger',
+				[$this->app['log'], $this->makeAppInfoGenerator()])
+				->log();
 
-		return $this->app->make('anlutro\L4SmartErrors\Responders\CsrfResponder', [$this->app])
-			->respond($exception);
+			return $this->app->make('anlutro\L4SmartErrors\Responders\CsrfResponder', [$this->app])
+				->respond($exception);
+		} catch (Exception $e) {
+			return $this->handleHandlerException($e);
+		}
 	}
 
 	/**
@@ -144,6 +156,25 @@ class ErrorHandler
 		if ($this->handledExceptions->contains($exception)) return true;
 		$this->handledExceptions->attach($exception);
 		return false;
+	}
+
+	/**
+	 * Handle an exception that occurs inside an error handler.
+	 *
+	 * @param  Exception $exception
+	 *
+	 * @return string
+	 */
+	protected function handleHandlerException(Exception $exception)
+	{
+		error_log('Error in exception handler - https://github.com/anlutro/laravel-4-smart-errors/issues');
+
+		$lines = preg_split('{[\r\n]+}', (string) $exception);
+		foreach ($lines as $line) {
+			error_log($line);
+		}
+
+		return 'Error in exception handler. Check system error logs.';
 	}
 
 	/**
