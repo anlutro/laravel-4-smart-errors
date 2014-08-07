@@ -12,9 +12,9 @@ env:
   - FRAMEWORK_VERSION="4.3.*@dev" SKELETON_VERSION="dev-develop@dev"
 
 before_script:
-  - curl -s http://getcomposer.org/installer | php
-  - php composer.phar require laravel/framework:${FRAMEWORK_VERSION} --no-update
-  - php composer.phar require laravel/laravel:${SKELETON_VERSION} --dev --no-update
-  - php composer.phar install --dev --prefer-dist
+  - composer self-update
+  - composer require laravel/framework:${FRAMEWORK_VERSION} --no-update
+  - composer require laravel/laravel:${SKELETON_VERSION} --dev --no-update
+  - composer install --dev --prefer-dist
 
 script: phpunit
