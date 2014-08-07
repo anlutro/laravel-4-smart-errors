@@ -15,6 +15,9 @@ return array(
 	'missingTitle' => 'Seite nicht gefunden',
 	'missingText' => 'Die angeforderte Seite konnte nicht gefunden werden.',
 	
+	'csrfTitle' => 'Ungültige Anfrage',
+	'csrfText' => 'Wir konnten diese Anfrage nicht bearbeiten da Sitzung abgelaufen ist. Bitte versuchen Sie es erneut.',
+	
 	'backLinkTitle' => 'Zurück',
 	'frontpageLinkTitle' => 'Startseite',
 );
