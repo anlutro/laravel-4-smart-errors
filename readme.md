@@ -50,6 +50,17 @@ App::pushError(function() {
 
 Using `pushError` instead of `error` makes sure that it's pushed to the end of the exception handler stack, giving the package's error handler priority over yours.
 
+## Adding/customizing localization strings
+
+This repositories' languages and translations are sporadically updated at best. To ensure that your translation is always up-to-date and/or if you want to manage your translation yourself, run the following commands.
+
+```
+mkdir -p ./app/lang/packages/MYLOCALE/smarterror`
+cp ./vendor/anlutro/laravel-4-smart-errors/src/lang/en/*.php ./app/lang/packages/MYLOCALE/smarterror
+```
+
+You can also copy from a different locale than "en".
+
 # Contribution
 
 I'll accept language files right away without discussion. For anything else, please be descriptive in your pull requests.
