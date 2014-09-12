@@ -2,6 +2,8 @@
 
 Small system for showing a very generic error message to your end-users while sending an email to yourself with all relevant information about the exception.
 
+![Example email](http://i.imgur.com/yIvK8EV.png)
+
 - Uncaught exceptions send an email with detailed information (referrer, route name/action, any input given and more)
 - 404 errors are written in the log as warnings with the URL accessed + referrer
 - Alert-level log events are sent via email (since 1.3)
