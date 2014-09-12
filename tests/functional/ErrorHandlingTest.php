@@ -76,17 +76,22 @@ class ErrorHandlingTest extends PkgAppTestCase
 	{
 		$this->mock('swift.mailer')->shouldReceive('send')->once()
 			->andReturnUsing(function($msg) use($strings) {
-				$oldEnv = $this->app['env'];
-				$this->app['env'] = 'testing';
-				$html = $msg->getBody(); $children = $msg->getChildren();
-				$plain = $children[0]->getBody();
-				foreach ([$html, $plain] as $body) {
-					foreach ($strings as $string) {
-						$this->assertContains($string, $body);
-					}
-				}
-				$this->app['env'] = $oldEnv;
+				$this->assertMailBodiesContain($msg, $strings);
 			});
+	}
+
+	public function assertMailBodiesContain($msg, array $strings)
+	{
+		$oldEnv = $this->app['env'];
+		$this->app['env'] = 'testing';
+		$html = $msg->getBody(); $children = $msg->getChildren();
+		$plain = $children[0]->getBody();
+		foreach ([$html, $plain] as $body) {
+			foreach ($strings as $string) {
+				$this->assertContains($string, $body);
+			}
+		}
+		$this->app['env'] = $oldEnv;
 	}
 
 	/**
@@ -252,6 +257,17 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->app->bind('anlutro\L4SmartErrors\AppInfoGenerator',
 			__NAMESPACE__.'\CustomAppInfoGenerator');
 		$this->expectMailBodiesContain(['Custom info added!']);
+		$this->call('get', '/exception');
+	}
+
+	/** @test */
+	public function canSendToMultipleRecipients()
+	{
+		$this->app['config']->set('smarterror::dev-email', ['dev1@test.com', 'dev2@test.com']);
+		$this->mock('swift.mailer')->shouldReceive('send')->once()
+			->andReturnUsing(function($msg) {
+				$this->assertEquals(['dev1@test.com' => null, 'dev2@test.com' => null], $msg->getTo());
+			});
 		$this->call('get', '/exception');
 	}
 }
