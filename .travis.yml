@@ -9,7 +9,6 @@ php:
 env:
   - FRAMEWORK_VERSION="4.1.*" SKELETON_VERSION="4.1.*"
   - FRAMEWORK_VERSION="4.2.*" SKELETON_VERSION="4.2.*"
-  - FRAMEWORK_VERSION="4.3.*@dev" SKELETON_VERSION="dev-develop@dev"
 
 before_script:
   - composer self-update
