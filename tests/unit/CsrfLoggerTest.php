@@ -17,7 +17,7 @@ class CsrfLoggerTest extends PHPUnit_Framework_TestCase
 	public function logsWithAppInfoString()
 	{
 		$logger = new CsrfLogger(
-			$log = m::mock('Illuminate\Log\Writer'),
+			$log = m::mock('Psr\Log\LoggerInterface'),
 			$appInfo = m::mock('anlutro\L4SmartErrors\AppInfoGenerator')
 		);
 

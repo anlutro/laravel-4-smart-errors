@@ -10,14 +10,14 @@
 namespace anlutro\L4SmartErrors\Log;
 
 use Exception;
-use Illuminate\Log\Writer as Logger;
+use Psr\Log\LoggerInterface;
 use anlutro\L4SmartErrors\AppInfoGenerator;
 use anlutro\L4SmartErrors\Presenters\InputPresenter;
 
 class ExceptionLogger
 {
 	public function __construct(
-		Logger $logger,
+		LoggerInterface $logger,
 		AppInfoGenerator $appInfo,
 		InputPresenter $input = null
 	) {

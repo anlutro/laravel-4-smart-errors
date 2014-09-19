@@ -39,6 +39,26 @@ class ErrorHandler
 	}
 
 	/**
+	 * Get the application logger.
+	 *
+	 * @return \Psr\Log\LoggerInterface
+	 */
+	protected function getLogger()
+	{
+		$logger = $this->app['log'];
+
+		if ($logger instanceof \Illuminate\Log\Writer) {
+			$logger = $logger->getMonolog();
+		}
+
+		if ($logger instanceof \Psr\Log\LoggerInterface) {
+			return $logger;
+		}
+
+		return null;
+	}
+
+	/**
 	 * Handle an uncaught exception. Returns a view if config.app.debug == false,
 	 * otherwise returns void to let the default L4 error handler do its job.
 	 *
@@ -55,9 +75,11 @@ class ErrorHandler
 			list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter)
 				= $this->makeAllPresenters($exception);
 
-			$this->app->make('anlutro\L4SmartErrors\Log\ExceptionLogger',
-				[$this->app['log'], $appInfoPresenter, $inputPresenter])
-				->log($exception);
+			if ($logger = $this->getLogger()) {
+				$this->app->make('anlutro\L4SmartErrors\Log\ExceptionLogger',
+					[$logger, $appInfoPresenter, $inputPresenter])
+					->log($exception);
+			}
 
 			$email = $this->app['config']->get('smarterror::dev-email');
 
@@ -111,8 +133,11 @@ class ErrorHandler
 		try {
 			if ($this->exceptionHasBeenHandled($exception)) return null;
 
-			$this->app->make('anlutro\L4SmartErrors\Log\MissingLogger', [$this->app['log'], $this->app['request']])
+			if ($logger = $this->getLogger()) {
+				$this->app->make('anlutro\L4SmartErrors\Log\MissingLogger',
+					[$logger, $this->app['request']])
 				->log();
+			}
 
 			return $this->app->make('anlutro\L4SmartErrors\Responders\MissingResponder', [$this->app])
 				->respond($exception);
@@ -133,9 +158,11 @@ class ErrorHandler
 		try {
 			if ($this->exceptionHasBeenHandled($exception)) return null;
 
-			$this->app->make('anlutro\L4SmartErrors\Log\CsrfLogger',
-				[$this->app['log'], $this->makeAppInfoGenerator()])
-				->log();
+			if ($logger = $this->getLogger()) {
+				$this->app->make('anlutro\L4SmartErrors\Log\CsrfLogger',
+					[$logger, $this->makeAppInfoGenerator()])
+					->log();
+			}
 
 			return $this->app->make('anlutro\L4SmartErrors\Responders\CsrfResponder', [$this->app])
 				->respond($exception);
@@ -188,6 +215,9 @@ class ErrorHandler
 	{
 		// if app.debug is true, no emails should be sent
 		if ($this->app['config']->get('app.debug') === true) return false;
+
+		// if the mailer is not bound to the IoC container...
+		if (!$this->app->bound('mailer')) return false;
 
 		$files = $this->app['files'];
 		$path = $this->app['config']->get('smarterror::storage-path');

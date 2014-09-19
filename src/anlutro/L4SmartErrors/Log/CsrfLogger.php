@@ -9,13 +9,13 @@
 
 namespace anlutro\L4SmartErrors\Log;
 
-use Illuminate\Log\Writer as Logger;
+use Psr\Log\LoggerInterface;
 use anlutro\L4SmartErrors\AppInfoGenerator;
 
 class CsrfLogger
 {
 	public function __construct(
-		Logger $logger,
+		LoggerInterface $logger,
 		AppInfoGenerator $appInfo
 	) {
 		$this->logger = $logger;

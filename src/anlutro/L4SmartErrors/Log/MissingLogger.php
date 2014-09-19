@@ -9,7 +9,7 @@
 
 namespace anlutro\L4SmartErrors\Log;
 
-use Illuminate\Log\Writer as Logger;
+use Psr\Log\LoggerInterface;
 use Illuminate\Http\Request;
 
 class MissingLogger
@@ -18,7 +18,7 @@ class MissingLogger
 	protected $request;
 
 	public function __construct(
-		Logger $logger,
+		LoggerInterface $logger,
 		Request $request
 	) {
 		$this->logger = $logger;

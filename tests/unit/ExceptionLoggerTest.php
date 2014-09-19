@@ -17,7 +17,7 @@ class ExceptionLoggerTest extends PHPUnit_Framework_TestCase
 	public function logsWithExceptionAppInfoAndInput()
 	{
 		$logger = new ExceptionLogger(
-			$log = m::mock('Illuminate\Log\Writer'),
+			$log = m::mock('Psr\Log\LoggerInterface'),
 			$appInfo = m::mock('anlutro\L4SmartErrors\AppInfoGenerator'),
 			$input = m::mock('anlutro\L4SmartErrors\Presenters\InputPresenter')
 		);

@@ -17,7 +17,7 @@ class MissingLoggerTest extends PHPUnit_Framework_TestCase
 	public function logsWithUrlAndReferer()
 	{
 		$logger = new MissingLogger(
-			$log = m::mock('Illuminate\Log\Writer'),
+			$log = m::mock('Psr\Log\LoggerInterface'),
 			$request = m::mock('Illuminate\Http\Request')
 		);
 

@@ -161,7 +161,8 @@ class ErrorHandlingTest extends PkgAppTestCase
 	/** @test */
 	public function missingHandling()
 	{
-		$this->mock('log')->shouldReceive('warning')->once()
+		$this->mock('log')->shouldReceive('getMonolog')->andReturn($logger = m::mock('Psr\Log\LoggerInterface'));
+		$logger->shouldReceive('warning')->once()
 			->with('404 for URL http://localhost/does/not/exist -- Referer: none (handled by L4SmartErrors)');
 		$this->call('get', '/does/not/exist');
 		$response = $this->getResponse();
@@ -182,7 +183,8 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->app['session']->set('_token', 'realtoken');
 		$this->app['router']->any('/csrf-mismatch', ['before' => 'csrf', function() { return 'Success!'; }]);
 		$this->app['router']->any('/csrf-mismatch-2', ['before' => 'csrf', function() { return 'Success!'; }]);
-		$this->mock('log')->shouldReceive('warning')->once();
+		$this->mock('log')->shouldReceive('getMonolog')->andReturn($logger = m::mock('Psr\Log\LoggerInterface'));
+		$logger->shouldReceive('warning')->once();
 		if ($referer) {
 			$this->client->setServerParameter('HTTP_REFERER', $referer);
 		}
@@ -211,7 +213,8 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->app['router']->enableFilters();
 		$this->app['session']->set('_token', 'realtoken');
 		$this->app['router']->post('/csrf-mismatch', ['before' => 'csrf', function() { return 'Success!'; }]);
-		$this->mock('log')->shouldReceive('warning')->once();
+		$this->mock('log')->shouldReceive('getMonolog')->andReturn($logger = m::mock('Psr\Log\LoggerInterface'));
+		$logger->shouldReceive('warning')->once();
 		$this->client->setServerParameter('HTTP_REFERER', '/foo/bar');
 		$this->call('post', '/csrf-mismatch', ['_token' => 'faketoken']);
 		$response = $this->getResponse();
@@ -226,7 +229,8 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->app['router']->enableFilters();
 		$this->app['session']->set('_token', 'realtoken');
 		$this->app['router']->post('/csrf-mismatch', ['before' => 'csrf', function() { return 'Success!'; }]);
-		$this->mock('log')->shouldReceive('warning')->once();
+		$this->mock('log')->shouldReceive('getMonolog')->andReturn($logger = m::mock('Psr\Log\LoggerInterface'));
+		$logger->shouldReceive('warning')->once();
 		$this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 		$this->client->setServerParameter('HTTP_CONTENT_TYPE', 'application/json');
 		$this->client->setServerParameter('HTTP_ACCEPT', 'application/json');
