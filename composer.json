@@ -1,6 +1,6 @@
 {
     "name": "anlutro/l4-smart-errors",
-    "description": "Smart error reporting for Laravel 4.",
+    "description": "Smart error reporting for Laravel.",
     "keywords": ["error", "laravel"],
     "homepage": "https://github.com/anlutro/laravel-4-smart-errors",
     "license": "MIT",

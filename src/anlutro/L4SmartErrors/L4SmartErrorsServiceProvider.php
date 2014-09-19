@@ -75,11 +75,12 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	protected function registerAlertLogListener()
 	{
 		$app = $this->app;
-		$this->app['log']->listen(function($level, $message, $context) use ($app) {
-			if ($level == 'alert') {
+		$callback = function($level, $message, $context) use ($app) {
+			if ($level == 'critical' || $level == 'alert' || $level == 'emergency') {
 				$app['smarterror']->handleAlert($message, $context);
 			}
-		});
+		};
+		$this->app['events']->listen('illuminate.log', $callback);
 	}
 
 	/**
