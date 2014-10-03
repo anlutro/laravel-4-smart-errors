@@ -10,6 +10,7 @@
 namespace anlutro\L4SmartErrors;
 
 use Exception;
+use Carbon\Carbon;
 use Illuminate\Foundation\Application;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -225,27 +226,59 @@ class ErrorHandler
 		// create a basic hash of the exception. this should include the stack
 		// trace and message, making it more or less a unique identifier
 		$string = $exception->getMessage().$exception->getCode()
-			.$exception->getTraceAsString();
+			. $exception->getTraceAsString();
 		$hash = base64_encode($string);
-
-		$data = array();
 
 		// if the file exists, read from it and check if the hash of the current
 		// exception is the same as the previous one.
 		if ($files->exists($path)) {
 			$data = json_decode($files->get($path), true);
-			if (isset($data['previous']) && $data['previous'] == $hash) {
-				return false;
+			if ($data) {
+				$age = $this->getPreviousExceptionAge($data, $hash);
+				return $age === false || $age > 600;
 			}
 		}
 
 		// if the file is writeable, write the current exception hash into it.
 		if ($this->pathIsWriteable($path)) {
-			$data['previous'] = $hash;
+			$now = Carbon::now();
+			$data = ['previous' => ['hash' => $hash, 'time' => $now->timestamp]];
 			$files->put($path, json_encode($data));
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get the age in seconds of the previous time a given exception was
+	 * handled, if possible.
+	 *
+	 * @param  array  $data The parsed JSON from the storage file.
+	 * @param  string $hash The hash of the exception being handled.
+	 *
+	 * @return int|false    Returns false if age is indeterminable.
+	 */
+	protected function getPreviousExceptionAge(array $data, $hash)
+	{
+		// if any data is missing, age can't be determined
+		if (!isset($data['previous']) || !isset($data['previous']['hash'])) {
+			return false;
+		}
+
+		// if the hash does not equal, age does not matter
+		if ($data['previous']['hash'] != $hash) {
+			return false;
+		}
+
+		// if the time data is not set, age can't be determined
+		if (!isset($data['previous']['time'])) {
+			return false;
+		}
+
+		// all preconditions are OK, so calculate the time
+		$now = Carbon::now();
+		$age = $now->timestamp - $data['previous']['time'];
+		return (int) $age;
 	}
 
 	/**

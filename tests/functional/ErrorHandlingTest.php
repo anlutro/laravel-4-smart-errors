@@ -18,6 +18,10 @@ class ErrorHandlingTest extends PkgAppTestCase
 
 	public function setUp()
 	{
+		$path = $this->getVendorPath().'/laravel/laravel/app/storage/meta/l4-smart-errors.json';
+		if (file_exists($path)) {
+			unlink($path);
+		}
 		parent::setUp();
 		$this->app['env'] = 'production';
 		$this->app['config']->set('smarterror::dev-email', 'foo@bar.com');
@@ -69,12 +73,13 @@ class ErrorHandlingTest extends PkgAppTestCase
 	 * and HTML emails being sent by the error handler.
 	 *
 	 * @param  array  $strings
+	 * @param  int    $times
 	 *
 	 * @return void
 	 */
-	public function expectMailBodiesContain(array $strings)
+	public function expectMailBodiesContain(array $strings, $times = 1)
 	{
-		$this->mock('swift.mailer')->shouldReceive('send')->once()
+		$this->mock('swift.mailer')->shouldReceive('send')->times($times)
 			->andReturnUsing(function($msg) use($strings) {
 				$this->assertMailBodiesContain($msg, $strings);
 			});
@@ -253,6 +258,24 @@ class ErrorHandlingTest extends PkgAppTestCase
 
 		// put these on the same line to make sure stack traces are identical
 		$this->call('get', '/exception'); $this->call('get', '/exception');
+	}
+
+	/** @test */
+	public function sameExceptionIsEmailedTwiceIfTenMinutesHavePassed()
+	{
+		$this->app['router']->get('/time-exception', function() use(&$mins) {
+			// increases Carbon::now() by 9 minutes on each invocation
+			\Carbon\Carbon::setTestNow(\Carbon\Carbon::now()->addMinutes(9));
+			throw new \LogicException('L4SmartErrors test exception');
+		});
+
+		// expect send() to be called twice
+		$this->expectMailBodiesContain([
+			'LogicException', 'L4SmartErrors test exception', __FILE__,
+		], 2);
+
+		// put these on the same line to make sure stack traces are identical
+		$this->call('get', '/time-exception'); $this->call('get', '/time-exception'); $this->call('get', '/time-exception');
 	}
 
 	/** @test */
