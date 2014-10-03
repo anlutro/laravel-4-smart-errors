@@ -232,7 +232,10 @@ class ErrorHandler
 		// if the file exists, read from it and check if the hash of the current
 		// exception is the same as the previous one.
 		if ($files->exists($path)) {
+			// read the json file into an associative array
 			$data = json_decode($files->get($path), true);
+
+			// don't check age if the file is empty
 			if ($data) {
 				$age = $this->getPreviousExceptionAge($data, $hash);
 				return $age === false || $age > 600;
@@ -241,8 +244,10 @@ class ErrorHandler
 
 		// if the file is writeable, write the current exception hash into it.
 		if ($this->pathIsWriteable($path)) {
-			$now = Carbon::now();
-			$data = ['previous' => ['hash' => $hash, 'time' => $now->timestamp]];
+			$data = ['previous' => [
+				'hash' => $hash,
+				'time' => Carbon::now()->timestamp,
+			]];
 			$files->put($path, json_encode($data));
 		}
 
@@ -276,8 +281,7 @@ class ErrorHandler
 		}
 
 		// all preconditions are OK, so calculate the time
-		$now = Carbon::now();
-		$age = $now->timestamp - $data['previous']['time'];
+		$age = Carbon::now()->timestamp - $data['previous']['time'];
 		return (int) $age;
 	}
 
