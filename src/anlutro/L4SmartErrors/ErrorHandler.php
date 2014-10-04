@@ -45,6 +45,10 @@ class ErrorHandler
 	 */
 	protected function getLogger()
 	{
+		if ($this->app->bound('Psr\Log\LoggerInterface')) {
+			return $this->app->make('Psr\Log\LoggerInterface');
+		}
+
 		$logger = $this->app['log'];
 
 		if ($logger instanceof \Illuminate\Log\Writer) {
