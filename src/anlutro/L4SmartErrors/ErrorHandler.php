@@ -10,7 +10,6 @@
 namespace anlutro\L4SmartErrors;
 
 use Exception;
-use Carbon\Carbon;
 use Illuminate\Foundation\Application;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -71,7 +70,9 @@ class ErrorHandler
 	public function handleException(Exception $exception, $code = null)
 	{
 		try {
-			if ($this->exceptionHasBeenHandled($exception)) return null;
+			if ($this->exceptionHasBeenHandled($exception)) {
+				return null;
+			}
 
 			list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter)
 				= $this->makeAllPresenters($exception);
@@ -109,17 +110,24 @@ class ErrorHandler
 	{
 		$email = $this->app['config']->get('smarterror::dev-email');
 
-		if ($this->app['config']->get('app.debug') !== false || empty($email)) {
+		if ($this->app['config']->get('app.debug') !== false || !$email) {
 			return;
 		}
 
+		$forcing = false;
 		if ($this->app['config']->get('smarterror::force-email') !== false) {
+			$forcing = true;
+			$previousPretendState = $this->app['config']->get('mail.pretend');
 			$this->app['config']->set('mail.pretend', false);
 		}
 
 		$this->app->make('anlutro\L4SmartErrors\Mail\AlertLogMailer',
 			[$this->app, $message, $this->makeLogContextPresenter($context), $this->makeAppInfoGenerator()])
 			->send($email);
+
+		if ($forcing) {
+			$this->app['config']->set('mail.pretend', $previousPretendState);
+		}
 	}
 
 	/**
@@ -132,7 +140,9 @@ class ErrorHandler
 	public function handleMissing(NotFoundHttpException $exception)
 	{
 		try {
-			if ($this->exceptionHasBeenHandled($exception)) return null;
+			if ($this->exceptionHasBeenHandled($exception)) {
+				return null;
+			}
 
 			if ($logger = $this->getLogger()) {
 				$this->app->make('anlutro\L4SmartErrors\Log\MissingLogger',
@@ -157,7 +167,9 @@ class ErrorHandler
 	public function handleTokenMismatch(TokenMismatchException $exception)
 	{
 		try {
-			if ($this->exceptionHasBeenHandled($exception)) return null;
+			if ($this->exceptionHasBeenHandled($exception)) {
+				return null;
+			}
 
 			if ($logger = $this->getLogger()) {
 				$this->app->make('anlutro\L4SmartErrors\Log\CsrfLogger',
@@ -181,8 +193,12 @@ class ErrorHandler
 	 */
 	protected function exceptionHasBeenHandled(Exception $exception)
 	{
-		if ($this->handledExceptions->contains($exception)) return true;
+		if ($this->handledExceptions->contains($exception)) {
+			return true;
+		}
+
 		$this->handledExceptions->attach($exception);
+
 		return false;
 	}
 
@@ -212,109 +228,17 @@ class ErrorHandler
 	 *
 	 * @return boolean
 	 */
-	protected function shouldSendEmail($exception)
+	protected function shouldSendEmail(Exception $exception)
 	{
-		// if app.debug is true, no emails should be sent
-		if ($this->app['config']->get('app.debug') === true) return false;
-
 		// if the mailer is not bound to the IoC container...
-		if (!$this->app->bound('mailer')) return false;
-
-		$files = $this->app['files'];
-		$path = $this->app['config']->get('smarterror::storage-path');
-
-		// create a basic hash of the exception. this should include the stack
-		// trace and message, making it more or less a unique identifier
-		$string = $exception->getMessage().$exception->getCode()
-			. $exception->getTraceAsString();
-		$hash = base64_encode($string);
-
-		// if the file exists, read from it and check if the hash of the current
-		// exception is the same as the previous one.
-		if ($files->exists($path)) {
-			// read the json file into an associative array
-			$data = json_decode($files->get($path), true);
-
-			// don't check age if the file is empty
-			if ($data) {
-				$age = $this->getPreviousExceptionAge($data, $hash);
-				return $age === false || $age > 600;
-			}
-		}
-
-		// if the file is writeable, write the current exception hash into it.
-		if ($this->pathIsWriteable($path)) {
-			$data = ['previous' => [
-				'hash' => $hash,
-				'time' => Carbon::now()->timestamp,
-			]];
-			$files->put($path, json_encode($data));
-		}
-
-		return true;
-	}
-
-	/**
-	 * Get the age in seconds of the previous time a given exception was
-	 * handled, if possible.
-	 *
-	 * @param  array  $data The parsed JSON from the storage file.
-	 * @param  string $hash The hash of the exception being handled.
-	 *
-	 * @return int|false    Returns false if age is indeterminable.
-	 */
-	protected function getPreviousExceptionAge(array $data, $hash)
-	{
-		// if any data is missing, age can't be determined
-		if (!isset($data['previous']) || !isset($data['previous']['hash'])) {
+		if (!$this->app->bound('mailer')) {
 			return false;
 		}
 
-		// if the hash does not equal, age does not matter
-		if ($data['previous']['hash'] != $hash) {
-			return false;
-		}
+		$throttler = $this->app->make('anlutro\L4SmartErrors\ReportThrottler',
+			[$this->app['config'], $this->app['files']]);
 
-		// if the time data is not set, age can't be determined
-		if (!isset($data['previous']['time'])) {
-			return false;
-		}
-
-		// all preconditions are OK, so calculate the time
-		$age = Carbon::now()->timestamp - $data['previous']['time'];
-		return (int) $age;
-	}
-
-	/**
-	 * Determine if a path is writeable or not.
-	 *
-	 * @param  string $path
-	 *
-	 * @return boolean
-	 *
-	 * @throws \InvalidArgumentException
-	 */
-	protected function pathIsWriteable($path)
-	{
-		$files = $this->app['files'];
-
-		if ($files->isDirectory($path)) {
-			throw new \InvalidArgumentException("$path is a directory");
-		}
-
-		// if the file exists, simply check if it is writeable
-		if ($files->isFile($path) && $files->isWritable($path)) {
-			return true;
-		}
-
-		// if not, check if the directory of the path is writeable
-		$dir = dirname($path);
-
-		if ($files->isDirectory($dir) && $files->isWritable($dir)) {
-			return true;
-		}
-
-		return false;
+		return $throttler->shouldReport($exception);
 	}
 
 	/**
@@ -341,7 +265,7 @@ class ErrorHandler
 	 *
 	 * @return \anlutro\L4SmartErrors\Presenters\ExceptionPresenter
 	 */
-	protected function makeExceptionPresenter($exception)
+	protected function makeExceptionPresenter(Exception $exception)
 	{
 		return $this->app->make('anlutro\L4SmartErrors\Presenters\ExceptionPresenter',
 			[$exception]);
