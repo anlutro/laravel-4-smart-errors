@@ -168,7 +168,7 @@ class ErrorHandlingTest extends PkgAppTestCase
 	{
 		$this->mock('log')->shouldReceive('getMonolog')->andReturn($logger = m::mock('Psr\Log\LoggerInterface'));
 		$logger->shouldReceive('warning')->once()
-			->with('404 for URL http://localhost/does/not/exist -- Referer: none (handled by L4SmartErrors)');
+			->with('404 for URL http://localhost/does/not/exist - Referer: none');
 		$this->call('get', '/does/not/exist');
 		$response = $this->getResponse();
 		$this->assertEquals(404, $response->getStatusCode());

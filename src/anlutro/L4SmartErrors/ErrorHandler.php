@@ -78,20 +78,22 @@ class ErrorHandler
 				return null;
 			}
 
-			list($exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter)
-				= $this->makeAllPresenters($exception);
-
 			if ($logger = $this->getLogger()) {
 				$this->app->make('anlutro\L4SmartErrors\Log\ExceptionLogger',
-					[$logger, $appInfoPresenter, $inputPresenter])
+					[$logger, $this->makeContextCollector()])
 					->log($exception);
 			}
 
 			$email = $this->app['config']->get('smarterror::dev-email');
 
 			if ($email && $this->shouldSendEmail($exception)) {
+				$appInfoGenerator = $this->makeAppInfoGenerator();
+				$exceptionPresenter = $this->makeExceptionPresenter($exception);
+				$inputPresenter = $this->makeInputPresenter();
+				$queryLogPresenter = $this->makeQueryLogPresenter();
+
 				$this->app->make('anlutro\L4SmartErrors\Mail\ExceptionMailer',
-					[$this->app, $exceptionPresenter, $appInfoPresenter, $inputPresenter, $queryLogPresenter])
+					[$this->app, $exceptionPresenter, $appInfoGenerator, $inputPresenter, $queryLogPresenter])
 					->send($email);
 			}
 
@@ -176,8 +178,10 @@ class ErrorHandler
 			}
 
 			if ($logger = $this->getLogger()) {
+				$sessionToken = $this->app['session']->getToken();
+				$inputToken = $this->app['request']->get('_token');
 				$this->app->make('anlutro\L4SmartErrors\Log\CsrfLogger',
-					[$logger, $this->makeAppInfoGenerator()])
+					[$logger, $this->makeContextCollector(), $sessionToken, $inputToken])
 					->log();
 			}
 
@@ -246,23 +250,6 @@ class ErrorHandler
 	}
 
 	/**
-	 * Get an array of all the different presenters available.
-	 *
-	 * @param  \Exception $exception
-	 *
-	 * @return array
-	 */
-	protected function makeAllPresenters(Exception $exception)
-	{
-		return array(
-			$this->makeExceptionPresenter($exception),
-			$this->makeAppInfoGenerator(),
-			$this->makeInputPresenter(),
-			$this->makeQueryLogPresenter(),
-		);
-	}
-
-	/**
 	 * Make an exception presenter.
 	 *
 	 * @param  \Exception $exception
@@ -283,6 +270,17 @@ class ErrorHandler
 	protected function makeAppInfoGenerator()
 	{
 		return $this->app->make('anlutro\L4SmartErrors\AppInfoGenerator',
+			[$this->app]);
+	}
+
+	/**
+	 * Make an application log context collector.
+	 *
+	 * @return \anlutro\L4SmartErrors\Log\ContextCollector
+	 */
+	protected function makeContextCollector()
+	{
+		return $this->app->make('anlutro\L4SmartErrors\Log\ContextCollector',
 			[$this->app]);
 	}
 

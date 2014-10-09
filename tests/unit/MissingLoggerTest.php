@@ -26,7 +26,6 @@ class MissingLoggerTest extends PHPUnit_Framework_TestCase
 		$log->shouldReceive('warning')->once()->andReturnUsing(function($str) {
 			$this->assertContains('404 for URL http://fake-url', $str);
 			$this->assertContains('Referer: http://fake-referer', $str);
-			$this->assertContains('handled by L4SmartErrors', $str);
 		});
 
 		$logger->log();

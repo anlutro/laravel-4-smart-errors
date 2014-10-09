@@ -30,6 +30,6 @@ class MissingLogger
 		$url = $this->request->fullUrl();
 		$referer = $this->request->header('referer') ?: 'none';
 
-		$this->logger->warning("404 for URL $url -- Referer: $referer (handled by L4SmartErrors)");
+		$this->logger->warning("404 for URL $url - Referer: $referer");
 	}
 }

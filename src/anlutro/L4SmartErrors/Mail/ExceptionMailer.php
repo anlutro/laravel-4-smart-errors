@@ -19,6 +19,12 @@ use Illuminate\Mail\Message;
 
 class ExceptionMailer
 {
+	protected $app;
+	protected $exception;
+	protected $appInfo;
+	protected $input;
+	protected $queryLog;
+
 	public function __construct(
 		Application $app,
 		ExceptionPresenter $exception,

@@ -11,33 +11,26 @@ namespace anlutro\L4SmartErrors\Log;
 
 use Exception;
 use Psr\Log\LoggerInterface;
-use anlutro\L4SmartErrors\AppInfoGenerator;
-use anlutro\L4SmartErrors\Presenters\InputPresenter;
 
 class ExceptionLogger
 {
+	protected $logger;
+	protected $contextCollector;
+
 	public function __construct(
 		LoggerInterface $logger,
-		AppInfoGenerator $appInfo,
-		InputPresenter $input = null
+		ContextCollector $contextCollector
 	) {
 		$this->logger = $logger;
-		$this->appInfo = $appInfo;
-		$this->input = $input;
+		$this->contextCollector = $contextCollector;
 	}
 
 	public function log(Exception $exception)
 	{
-		$logstr = "Uncaught Exception (handled by L4SmartErrors)\n";
+		$logstr = "Uncaught $exception";
 
-		$logstr .= $this->appInfo->renderCompact();
+		$context = $this->contextCollector->getContext();
 
-		if ($this->input) {
-			$logstr .= "\nInput: " . $this->input->renderCompact();
-		}
-
-		$logstr .= "\n" . $exception;
-
-		$this->logger->error($logstr);
+		$this->logger->error($logstr, $context);
 	}
 }

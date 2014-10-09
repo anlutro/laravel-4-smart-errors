@@ -14,25 +14,20 @@ class ExceptionLoggerTest extends PHPUnit_Framework_TestCase
 	}
 
 	/** @test */
-	public function logsWithExceptionAppInfoAndInput()
+	public function log()
 	{
 		$logger = new ExceptionLogger(
 			$log = m::mock('Psr\Log\LoggerInterface'),
-			$appInfo = m::mock('anlutro\L4SmartErrors\AppInfoGenerator'),
-			$input = m::mock('anlutro\L4SmartErrors\Presenters\InputPresenter')
+			$context = m::mock('anlutro\L4SmartErrors\Log\ContextCollector')
 		);
 
-		$appInfo->shouldReceive('renderCompact')->once()
-			->andReturn('AppInfoGenerator string');
-		$input->shouldReceive('renderCompact')->once()
-			->andReturn('InputPresenter string');
-		$log->shouldReceive('error')->once()->andReturnUsing(function($str) {
-			$this->assertContains('Uncaught Exception', $str);
-			$this->assertContains('handled by L4SmartErrors', $str);
-			$this->assertContains('AppInfoGenerator string', $str);
-			$this->assertContains('InputPresenter string', $str);
+		$context->shouldReceive('getContext')->once()
+			->andReturn(['foo' => 'bar']);
+		$log->shouldReceive('error')->once()->andReturnUsing(function($str, $context) {
+			$this->assertContains('Uncaught exception \'Exception\'', $str);
 			$this->assertContains(__FILE__, $str);
 			$this->assertContains(__CLASS__, $str);
+			$this->assertEquals('bar', $context['foo']);
 		});
 
 		$logger->log(new \Exception);

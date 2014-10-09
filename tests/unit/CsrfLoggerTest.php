@@ -14,19 +14,22 @@ class CsrfLoggerTest extends PHPUnit_Framework_TestCase
 	}
 
 	/** @test */
-	public function logsWithAppInfoString()
+	public function log()
 	{
 		$logger = new CsrfLogger(
 			$log = m::mock('Psr\Log\LoggerInterface'),
-			$appInfo = m::mock('anlutro\L4SmartErrors\AppInfoGenerator')
+			$context = m::mock('anlutro\L4SmartErrors\Log\ContextCollector'),
+			'session_token', 'input_token'
 		);
 
-		$appInfo->shouldReceive('renderCompact')->once()
-			->andReturn('AppInfoGenerator string');
-		$log->shouldReceive('warning')->once()->andReturnUsing(function($str) {
+		$context->shouldReceive('getContext')->once()
+			->andReturn(['foo' => 'bar']);
+		$log->shouldReceive('warning')->once()->andReturnUsing(function($str, $context) {
 			$this->assertContains('CSRF token mismatch', $str);
-			$this->assertContains('handled by L4SmartErrors', $str);
-			$this->assertContains('AppInfoGenerator string', $str);
+			$this->assertContains('session value: session_token', $str);
+			$this->assertContains('input value: input_token', $str);
+			$this->assertArrayHasKey('foo', $context);
+			$this->assertEquals('bar', $context['foo']);
 		});
 
 		$logger->log();
