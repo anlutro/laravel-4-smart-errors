@@ -239,7 +239,7 @@ class ErrorHandler
 	protected function shouldSendEmail(Exception $exception)
 	{
 		// if the mailer is not bound to the IoC container...
-		if (!$this->app->bound('mailer')) {
+		if (!$this->app->bound('mailer') && !$this->app->isDeferredService('mailer')) {
 			return false;
 		}
 
