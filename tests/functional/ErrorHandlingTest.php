@@ -260,19 +260,33 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->call('get', '/exception'); $this->call('get', '/exception');
 	}
 
-	/** @test */
-	public function sameExceptionIsEmailedTwiceIfTenMinutesHavePassed()
+	public function getThrottleData()
 	{
-		$this->app['router']->get('/time-exception', function() use(&$mins) {
-			// increases Carbon::now() by 9 minutes on each invocation
-			\Carbon\Carbon::setTestNow(\Carbon\Carbon::now()->addMinutes(9));
+		return [
+			[9, 2],
+			[11, 3],
+			[9, 3, 500],
+			[3, 2, 200],
+		];
+	}
+
+	/**
+	 * @test
+	 * @dataProvider getThrottleData
+	 */
+	public function reportThrottling($interval, $expectedCount, $age = null)
+	{
+		if ($age !== null) {
+			$this->app['config']->set('smarterror::throttle-age', $age);
+		}
+		$this->app['router']->get('/time-exception', function() use($interval) {
+			\Carbon\Carbon::setTestNow(\Carbon\Carbon::now()->addMinutes($interval));
 			throw new \LogicException('L4SmartErrors test exception');
 		});
 
-		// expect send() to be called twice
 		$this->expectMailBodiesContain([
 			'LogicException', 'L4SmartErrors test exception', __FILE__,
-		], 2);
+		], $expectedCount);
 
 		// put these on the same line to make sure stack traces are identical
 		$this->call('get', '/time-exception'); $this->call('get', '/time-exception'); $this->call('get', '/time-exception');

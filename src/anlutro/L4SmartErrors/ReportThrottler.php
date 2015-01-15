@@ -16,17 +16,19 @@ use Illuminate\Filesystem\Filesystem;
 
 class ReportThrottler
 {
-	const MAX_AGE_SECONDS = 600;
-
 	protected $config;
 	protected $files;
+	protected $maxAgeSeconds;
 
 	public function __construct(
 		Repository $config,
-		Filesystem $files
+		Filesystem $files,
+		$maxAgeSeconds = null
 	) {
 		$this->config = $config;
 		$this->files = $files;
+		$this->maxAgeSeconds = is_int($maxAgeSeconds) ? $maxAgeSeconds :
+			$this->config->get('smarterror::throttle-age', 600);
 	}
 
 	/**
@@ -61,7 +63,7 @@ class ReportThrottler
 			// don't check age if the file is empty
 			if ($data) {
 				$age = $this->getPreviousExceptionAge($data, $hash);
-				return $age === false || $age > static::MAX_AGE_SECONDS;
+				return $age === false || $age > $this->maxAgeSeconds;
 			}
 		}
 

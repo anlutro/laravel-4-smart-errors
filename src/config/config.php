@@ -36,12 +36,18 @@ return array(
 	// The PHP date() format that should be used.
 	'date-format' => 'Y-m-d H:i:s e',
 
-	// whether to display more detailed information in stack traces.
+	// Whether to display more detailed information in stack traces.
 	'expand-stack-trace' => false,
 
-	// whether to include query logs in error report emails.
+	// Whether to include query logs in error report emails.
 	'include-query-log' => false,
 
-	// path to JSON file where metadata is stored.
+	// Path to JSON file where metadata is stored.
 	'storage-path' => storage_path('meta/l4-smart-errors.json'),
+
+	// The error handler has a throttle in place to prevent the same exception
+	// from being emailed over and over. This is the number of seconds that must
+	// have passed since the last exception of the same type for the new
+	// exception to be emailed. Set to -1 to disable all throttling.
+	'throttle-age' => 600,
 );
