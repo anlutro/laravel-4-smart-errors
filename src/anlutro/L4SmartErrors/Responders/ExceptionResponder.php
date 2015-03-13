@@ -13,9 +13,12 @@ use Exception;
 use Illuminate\Support\Facades\Response;
 use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use anlutro\L4SmartErrors\Traits\ConfigCompatibilityTrait;
 
 class ExceptionResponder extends AbstractResponder
 {
+	use ConfigCompatibilityTrait;
+
 	public function respond(Exception $exception)
 	{
 		// the default laravel console error handler really sucks - override it
@@ -43,10 +46,10 @@ class ExceptionResponder extends AbstractResponder
 		}
 
 		// if debug is false, show the friendly error message
-		if ($this->app['config']->get('app.debug') === false) {
+		if ($this->getConfig('app.debug') === false) {
 			if ($this->requestIsJson()) {
 				return Response::json(array('errors' => array($this->app['translator']->get('smarterror::genericErrorTitle'))), $statusCode, $headers);
-			} else if ($view = $this->app['config']->get('smarterror::error-view')) {
+			} else if ($view = $this->getConfig('smarterror::error-view')) {
 				return Response::view($view, array(
 					'referer' => $this->app['request']->header('referer'),
 				), $statusCode, $headers);

@@ -9,13 +9,15 @@
 
 namespace anlutro\L4SmartErrors;
 
+use anlutro\L4SmartErrors\Traits\ConfigCompatibilityTrait;
+use anlutro\L4SmartErrors\Traits\ConsoleCheckingTrait;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Fluent;
-use anlutro\L4SmartErrors\Traits\ConsoleCheckingTrait;
 
 class AppInfoGenerator
 {
 	use ConsoleCheckingTrait;
+	use ConfigCompatibilityTrait;
 
 	protected $app;
 	protected $console;
@@ -35,7 +37,7 @@ class AppInfoGenerator
 		$this->addData('Environment', $this->app->environment());
 		$this->addData('Hostname', gethostname());
 
-		$timeFormat = $this->app['config']->get('smarterror::date-format') ?: 'Y-m-d H:i:s e';
+		$timeFormat = $this->getConfig('smarterror::date-format') ?: 'Y-m-d H:i:s e';
 		$this->addData('Time', date($timeFormat));
 
 		if ($this->console) {

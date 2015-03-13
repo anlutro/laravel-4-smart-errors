@@ -13,12 +13,12 @@
     "require": {
         "php": ">=5.4.0",
         "xethron/l4-to-string": "1.0.*",
-        "laravel/framework": "~4.1"
+        "laravel/framework": ">=4.1 <6.0"
     },
     "require-dev": {
         "mockery/mockery": "0.9.*",
         "anlutro/l4-testing": "0.2.*",
-        "laravel/laravel": "~4.1"
+        "laravel/laravel": ">=4.1 <6.0"
     },
     "autoload": {
         "psr-0": {

@@ -9,17 +9,20 @@
 
 namespace anlutro\L4SmartErrors\Mail;
 
-use Exception;
-use Illuminate\Foundation\Application;
 use anlutro\L4SmartErrors\AppInfoGenerator;
 use anlutro\L4SmartErrors\Presenters\ExceptionPresenter;
 use anlutro\L4SmartErrors\Presenters\SessionPresenter;
 use anlutro\L4SmartErrors\Presenters\InputPresenter;
 use anlutro\L4SmartErrors\Presenters\QueryLogPresenter;
+use anlutro\L4SmartErrors\Traits\ConfigCompatibilityTrait;
+use Exception;
+use Illuminate\Foundation\Application;
 use Illuminate\Mail\Message;
 
 class ExceptionMailer
 {
+	use ConfigCompatibilityTrait;
+
 	protected $app;
 	protected $exception;
 	protected $session;
@@ -45,13 +48,11 @@ class ExceptionMailer
 
 	public function send($email)
 	{
-		$config = $this->app['config'];
-
-		if ($config->get('smarterror::force-email')) {
-			$config->set('mail.pretend', false);
+		if ($this->getConfig('smarterror::force-email')) {
+			$this->app['config']->set('mail.pretend', false);
 		}
 
-		if ($config->get('smarterror::expand-stack-trace')) {
+		if ($this->getConfig('smarterror::expand-stack-trace')) {
 			$this->exception->setDescriptive(true);
 		}
 

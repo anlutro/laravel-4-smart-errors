@@ -9,13 +9,16 @@
 
 namespace anlutro\L4SmartErrors\Mail;
 
-use Illuminate\Foundation\Application;
 use anlutro\L4SmartErrors\AppInfoGenerator;
 use anlutro\L4SmartErrors\Presenters\LogContextPresenter;
+use anlutro\L4SmartErrors\Traits\ConfigCompatibilityTrait;
+use Illuminate\Foundation\Application;
 use Illuminate\Mail\Message;
 
 class AlertLogMailer
 {
+	use ConfigCompatibilityTrait;
+
 	protected $app;
 	protected $message;
 	protected $context;
@@ -35,7 +38,7 @@ class AlertLogMailer
 
 	public function send($email)
 	{
-		if ($this->app['config']->get('smarterror::force-email')) {
+		if ($this->getConfig('smarterror::force-email')) {
 			$this->app['config']->set('mail.pretend', false);
 		}
 
@@ -48,9 +51,9 @@ class AlertLogMailer
 		$env = $this->app->environment();
 		$cc = $this->app['config']->get('smarterror::cc-email');
 		$subject = "[$env] Alert logged - ";
-		$subject .= $this->app['request']->root() ?: $this->app['config']->get('app.url');
-		$htmlView = $this->app['config']->get('smarterror::alert-email-view') ?: 'smarterror::alert-email';
-		$plainView = $this->app['config']->get('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
+		$subject .= $this->app['request']->root() ?: $this->getConfig('app.url');
+		$htmlView = $this->getConfig('smarterror::alert-email-view') ?: 'smarterror::alert-email';
+		$plainView = $this->getConfig('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
 
 		$callback = function(Message $msg) use($email, $subject, $cc) {
 			$msg->to($email)->subject($subject);

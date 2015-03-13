@@ -9,14 +9,17 @@
 
 namespace anlutro\L4SmartErrors\Responders;
 
+use anlutro\L4SmartErrors\Traits\ConfigCompatibilityTrait;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Response;
 
 class CsrfResponder extends AbstractResponder
 {
+	use ConfigCompatibilityTrait;
+
 	public function respond(TokenMismatchException $exception)
 	{
-		$notDebug = $this->app['config']->get('app.debug') === false;
+		$notDebug = $this->getConfig('app.debug') === false;
 
 		$request = $this->app['request'];
 
@@ -40,7 +43,7 @@ class CsrfResponder extends AbstractResponder
 				->withErrors($this->app['translator']->get('smarterror::error.csrfText'));
 		}
 
-		if ($notDebug && $view = $this->app['config']->get('smarterror::csrf-view')) {
+		if ($notDebug && $view = $this->getConfig('smarterror::csrf-view')) {
 			return Response::view($view, array(
 				'referer' => $request->header('referer'),
 			), 400);

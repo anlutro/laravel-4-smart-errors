@@ -2,10 +2,14 @@
 namespace anlutro\L4SmartErrors\Tests;
 
 use anlutro\LaravelTesting\PkgAppTestCase;
+use anlutro\L4SmartErrors\Traits\ConfigCompatibilityTrait;
+use Illuminate\Foundation\Application;
 use Mockery as m;
 
 class ErrorHandlingTest extends PkgAppTestCase
 {
+	use ConfigCompatibilityTrait;
+
 	public function getVendorPath()
 	{
 		return __DIR__.'/../../vendor';
@@ -13,22 +17,30 @@ class ErrorHandlingTest extends PkgAppTestCase
 
 	public function getExtraProviders()
 	{
-		return ['anlutro\L4SmartErrors\L4SmartErrorsServiceProvider'];
+		if (version_compare(Application::VERSION, '5.0', '>=')) {
+			return ['anlutro\L4SmartErrors\L5SmartErrorsServiceProvider'];
+		} else {
+			return ['anlutro\L4SmartErrors\L4SmartErrorsServiceProvider'];
+		}
 	}
 
 	public function setUp()
 	{
-		$path = $this->getVendorPath().'/laravel/laravel/app/storage/meta/l4-smart-errors.json';
+		if (version_compare(Application::VERSION, '5.0', '>=')) {
+			$path = $this->getVendorPath().'/laravel/laravel/storage/app/l4-smart-errors.json';
+		} else {
+			$path = $this->getVendorPath().'/laravel/laravel/app/storage/meta/l4-smart-errors.json';
+		}
 		if (file_exists($path)) {
 			unlink($path);
 		}
 		parent::setUp();
 		$this->app['env'] = 'production';
-		$this->app['config']->set('smarterror::dev-email', 'foo@bar.com');
-		$this->app['config']->set('app.debug', false);
-		$this->app['config']->set('mail.driver', 'sendmail');
-		$this->app['config']->set('mail.pretend', false);
-		$this->app['config']->set('mail.from', ['name' => 'FooBar', 'address' => 'foo@bar.com']);
+		$this->setConfig('smarterror::dev-email', 'foo@bar.com');
+		$this->setConfig('app.debug', false);
+		$this->setConfig('mail.driver', 'sendmail');
+		$this->setConfig('mail.pretend', false);
+		$this->setConfig('mail.from', ['name' => 'FooBar', 'address' => 'foo@bar.com']);
 
 		$this->app['router']->get('exception', function() {
 			throw new \LogicException('L4SmartErrors test exception');
@@ -39,7 +51,11 @@ class ErrorHandlingTest extends PkgAppTestCase
 			return 'Logged!';
 		});
 
-		$storPath = $this->app['config']->get('smarterror::storage-path');
+		if (version_compare(Application::VERSION, '5.0', '>=')) {
+			$this->setConfig('smarterror::storage-path',
+				$this->getVendorPath().'/laravel/laravel/storage/app/l4-smart-errors.json');
+		}
+		$storPath = $this->getConfig('smarterror::storage-path');
 		$this->app['files']->put($storPath, '{}');
 	}
 
@@ -106,7 +122,11 @@ class ErrorHandlingTest extends PkgAppTestCase
 	 */
 	public function getResponse()
 	{
-		$response = $this->client->getResponse();
+		if (isset($this->client)) {
+			$response = $this->client->getResponse();
+		} else {
+			$response = $this->response;
+		}
 
 		// If an exception happens inside the exception handler, including
 		// exceptions on failed assertions by PHPUnit, the exception will not be
@@ -137,7 +157,7 @@ class ErrorHandlingTest extends PkgAppTestCase
 	/** @test */
 	public function expandedExceptionTrace()
 	{
-		$this->app['config']->set('smarterror::expand-stack-trace', true);
+		$this->setConfig('smarterror::expand-stack-trace', true);
 		$this->expectMailBodiesContain([
 			'LogicException', 'L4SmartErrors test exception', __FILE__,
 		]);
@@ -277,7 +297,7 @@ class ErrorHandlingTest extends PkgAppTestCase
 	public function reportThrottling($interval, $expectedCount, $age = null)
 	{
 		if ($age !== null) {
-			$this->app['config']->set('smarterror::throttle-age', $age);
+			$this->setConfig('smarterror::throttle-age', $age);
 		}
 		$this->app['router']->get('/time-exception', function() use($interval) {
 			\Carbon\Carbon::setTestNow(\Carbon\Carbon::now()->addMinutes($interval));
@@ -304,7 +324,7 @@ class ErrorHandlingTest extends PkgAppTestCase
 	/** @test */
 	public function canSendToMultipleRecipients()
 	{
-		$this->app['config']->set('smarterror::dev-email', ['dev1@test.com', 'dev2@test.com']);
+		$this->setConfig('smarterror::dev-email', ['dev1@test.com', 'dev2@test.com']);
 		$this->mock('swift.mailer')->shouldReceive('send')->once()
 			->andReturnUsing(function($msg) {
 				$this->assertEquals(['dev1@test.com' => null, 'dev2@test.com' => null], $msg->getTo());

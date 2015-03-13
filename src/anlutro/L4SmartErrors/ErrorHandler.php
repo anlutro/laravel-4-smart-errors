@@ -19,6 +19,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class ErrorHandler
 {
+	use Traits\ConfigCompatibilityTrait;
+
 	/**
 	 * @var \Illuminate\Foundation\Application
 	 */
@@ -84,7 +86,7 @@ class ErrorHandler
 					->log($exception);
 			}
 
-			$email = $this->app['config']->get('smarterror::dev-email');
+			$email = $this->getConfig('smarterror::dev-email');
 
 			if ($email && $this->shouldSendEmail($exception)) {
 				$appInfoGenerator = $this->makeAppInfoGenerator();
@@ -115,16 +117,16 @@ class ErrorHandler
 	 */
 	public function handleAlert($message, $context)
 	{
-		$email = $this->app['config']->get('smarterror::dev-email');
+		$email = $this->getConfig('smarterror::dev-email');
 
-		if ($this->app['config']->get('app.debug') !== false || !$email) {
+		if ($this->getConfig('app.debug') !== false || !$email) {
 			return;
 		}
 
 		$forcing = false;
-		if ($this->app['config']->get('smarterror::force-email') !== false) {
+		if ($this->getConfig('smarterror::force-email') !== false) {
 			$forcing = true;
-			$previousPretendState = $this->app['config']->get('mail.pretend');
+			$previousPretendState = $this->getConfig('mail.pretend');
 			$this->app['config']->set('mail.pretend', false);
 		}
 
@@ -332,7 +334,7 @@ class ErrorHandler
 	 */
 	protected function makeQueryLogPresenter()
 	{
-		if (!$this->app['config']->get('smarterror::include-query-log')) {
+		if (!$this->getConfig('smarterror::include-query-log')) {
 			return null;
 		}
 
