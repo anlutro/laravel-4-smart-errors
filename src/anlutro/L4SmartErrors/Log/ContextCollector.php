@@ -18,11 +18,22 @@ class ContextCollector
 
 	protected $app;
 	protected $console;
+	protected $sanitizeFields = ['password'];
 
 	public function __construct(Application $app, $console = null)
 	{
 		$this->app = $app;
 		$this->console = $console === null ? $this->isConsole() : (bool) $console;
+	}
+
+	public function addSanitizedField($field)
+	{
+		$this->sanitizeFields[] = $field;
+	}
+
+	public function setSanitizedFields(array $fields)
+	{
+		$this->sanitizeFields = $fields;
 	}
 
 	public function getContext()
@@ -36,7 +47,7 @@ class ContextCollector
 		if (!$this->console && $request = $this->app['request']) {
 			$context['url']         = $request->fullUrl();
 			$context['http_method'] = $request->getMethod();
-			$context['input']       = $request->input();
+			$context['input']       = $this->sanitizeInput($request->input());
 			$context['referer']     = $request->header('referer') ?: 'None';
 			$context['client_ip']   = $request->getClientIp();
 			$context['session_id']  = $this->app['session']->getId();
@@ -47,6 +58,22 @@ class ContextCollector
 		}
 
 		return $context;
+	}
+
+	protected function sanitizeInput(array $input)
+	{
+		foreach ($input as $key => &$value) {
+			if (is_array($value)) {
+				$value = $this->sanitizeInput($value);
+			}
+			foreach ($this->sanitizeFields as $field) {
+				if (strpos(strtolower($key), $field) !== false) {
+					$value = 'HIDDEN';
+				}
+			}
+		}
+
+		return $input;
 	}
 
 	/**
