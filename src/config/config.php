@@ -11,7 +11,11 @@ return array(
 	// The email the error reports will be sent to.
 	'dev-email' => '',
 
-	// send an email even if mail.pretend == true
+	// Who the email will appear as being from. If null, the mail driver may or
+	// may not have a sensible default.
+	'email-from' => null,
+
+	// Send an email even if mail.pretend == true.
 	'force-email' => false,
 
 	// The error handler email view.

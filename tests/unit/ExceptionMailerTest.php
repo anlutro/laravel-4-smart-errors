@@ -59,7 +59,7 @@ class ExceptionMailerTest extends PHPUnit_Framework_TestCase
 
 	protected function makeEverything()
 	{
-		$app = $this->makeApp();
+		$app = $this->makeApp(['smarterror::email-from' => 'bar@baz.com']);
 		$exception = $this->mockExceptionPresenter(new TestException);
 		$appInfo = $this->mockAppInfoGenerator();
 		$input = $this->makeInputPresenter();
@@ -78,7 +78,9 @@ class ExceptionMailerTest extends PHPUnit_Framework_TestCase
 			->with(m::type('array'), m::type('array'), m::type('Closure'))
 			->andReturnUsing(function($v, $d, \Closure $callback) {
 				$msg = m::mock('Illuminate\Mail\Message');
-				$msg->shouldReceive('to')->once()->with('foo@bar.com')->andReturn(m::self())->getMock()->shouldReceive('subject')->once()->with('[production] TestException - http://localhost');
+				$msg->shouldReceive('to')->once()->with('foo@bar.com');
+				$msg->shouldReceive('from')->once()->with('bar@baz.com');
+				$msg->shouldReceive('subject')->once()->with('[production] TestException - http://localhost');
 				$callback($msg);
 			});
 		
