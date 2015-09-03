@@ -46,7 +46,7 @@ Remove any `App::error` and `App::missing` you may have in your application to p
 
 ### Exception email reports
 
-Exceptions are e-mailed as long as `app.debug` is true, and the `dev-email` key is filled out in the package config file. Make sure that your `mail.php` config file is correct - test it with a regular `Mail::send()`. If your mailer is incorrectly configured, you may get a blank "error in exception handler" screen upon errors.
+Exceptions are e-mailed as long as `app.debug` is false, and the `dev-email` key is filled out in the package config file. Make sure that your `mail.php` config file is correct - test it with a regular `Mail::send()`. If your mailer is incorrectly configured, you may get a blank "error in exception handler" screen upon errors.
 
 Email reports are throttled, so that the exact same exception won't be sent over and over again. By default, the threshold for when an identical exception should be emailed again is 10 minutes. This can be configured with the `throttle-age` config key.
 
