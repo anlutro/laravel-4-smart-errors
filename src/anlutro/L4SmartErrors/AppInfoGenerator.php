@@ -45,6 +45,7 @@ class AppInfoGenerator
 			$this->addData('HTTP method', $this->app['request']->getMethod());
 			$this->addData('Referer', $this->app['request']->header('referer') ?: 'None');
 			$this->addData('Client IP', $this->app['request']->getClientIp());
+			$this->addData('User Agent', $this->app['request']->header('User-Agent'));
 
 			list($routeAction, $routeName) = $this->findRouteNames();
 			if ($routeName)   $this->addData('Route name', $routeName);
