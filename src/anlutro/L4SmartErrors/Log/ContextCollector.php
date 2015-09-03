@@ -50,6 +50,7 @@ class ContextCollector
 			$context['input']       = $this->sanitizeInput($request->input());
 			$context['referer']     = $request->header('referer') ?: 'None';
 			$context['client_ip']   = $request->getClientIp();
+			$context['user_agent']  = $request->header('User-Agent');
 			$context['session_id']  = $this->app['session']->getId();
 
 			list($routeAction, $routeName) = $this->findRouteNames();
