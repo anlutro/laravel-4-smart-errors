@@ -50,7 +50,7 @@ Exceptions are e-mailed as long as `app.debug` is true, and the `dev-email` key 
 
 Email reports are throttled, so that the exact same exception won't be sent over and over again. By default, the threshold for when an identical exception should be emailed again is 10 minutes. This can be configured with the `throttle-age` config key.
 
-Note that emails are not sent when `app.debug` is true.
+Note that emails are not sent when `app.debug` is false.
 
 
 ### End-user responses
