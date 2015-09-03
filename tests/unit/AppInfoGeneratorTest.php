@@ -61,6 +61,7 @@ class AppInfoGeneratorTest extends PHPUnit_Framework_TestCase
 		$this->assertContains('Client IP: 127.0.0.1', $strings);
 		$this->assertContains('Route name: route.name', $strings);
 		$this->assertContains('Route action: Controller@method', $strings);
+		$this->assertContains('User Agent: Symfony/2.X', $strings);
 	}
 
 	/** @test */
