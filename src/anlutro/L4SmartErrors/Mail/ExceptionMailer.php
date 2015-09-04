@@ -68,6 +68,7 @@ class ExceptionMailer
 		$config = [
 			'subject' => "[$env] $exceptionName - $rootUrl",
 			'from' => $config->get('smarterror::email-from'),
+			'cc' => $config->get('smarterror::cc-email'),
 		];
 
 		$callback = function(Message $msg) use($email, $config) {
@@ -77,6 +78,9 @@ class ExceptionMailer
 			}
 			if (isset($config['subject']) && $config['subject']) {
 				$msg->subject($config['subject']);
+			}
+			if (isset($config['cc']) && $config['cc']) {
+				$msg->cc($config['cc']);
 			}
 		};
 
