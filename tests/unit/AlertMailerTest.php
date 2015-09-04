@@ -45,7 +45,7 @@ class Test extends PHPUnit_Framework_TestCase
 
 	protected function makeEverything($message)
 	{
-		$app = $this->makeApp();
+		$app = $this->makeApp(['smarterror::cc-email' => 'cc-me@example.com']);
 		$context = $this->makeLogContextPresenter();
 		$appInfo = $this->mockAppInfoGenerator();
 		$mailer = $this->makeMailer($app, $message, $context, $appInfo);
@@ -63,6 +63,7 @@ class Test extends PHPUnit_Framework_TestCase
 			->andReturnUsing(function($v, $d, \Closure $callback) {
 				$msg = m::mock('Illuminate\Mail\Message');
 				$msg->shouldReceive('to')->once()->with('foo@bar.com')->andReturn(m::self())->getMock()->shouldReceive('subject')->once()->with('[production] Alert logged - http://localhost');
+				$msg->shouldReceive('cc')->once()->with('cc-me@example.com');
 				$callback($msg);
 			});
 		
