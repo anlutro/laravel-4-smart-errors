@@ -11,6 +11,10 @@ return array(
 	// The email the error reports will be sent to.
 	'dev-email' => '',
 
+	// An additional email address that will be CC'd on the error reports.
+	// Unused if empty.
+	'cc-email' => '',
+
 	// Who the email will appear as being from. If null, the mail driver may or
 	// may not have a sensible default.
 	'email-from' => null,
