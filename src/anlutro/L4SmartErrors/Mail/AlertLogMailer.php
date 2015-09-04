@@ -46,13 +46,17 @@ class AlertLogMailer
 		);
 
 		$env = $this->app->environment();
+		$cc = $this->app['config']->get('smarterror::cc-email');
 		$subject = "[$env] Alert logged - ";
 		$subject .= $this->app['request']->root() ?: $this->app['config']->get('app.url');
 		$htmlView = $this->app['config']->get('smarterror::alert-email-view') ?: 'smarterror::alert-email';
 		$plainView = $this->app['config']->get('smarterror::alert-email-view-plain') ?: 'smarterror::alert-email-plain';
 
-		$callback = function(Message $msg) use($email, $subject) {
+		$callback = function(Message $msg) use($email, $subject, $cc) {
 			$msg->to($email)->subject($subject);
+			if (isset($cc) && $cc) {
+				$msg->cc($cc);
+			}
 		};
 
 		$this->app['mailer']->send(array($htmlView, $plainView), $mailData, $callback);
