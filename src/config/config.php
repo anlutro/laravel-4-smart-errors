@@ -53,6 +53,9 @@ return array(
 	// Path to JSON file where metadata is stored.
 	'storage-path' => storage_path('meta/l4-smart-errors.json'),
 
+	// Sensitive keys that should be cleared from the session
+	'session-wipe' => [],
+
 	// The error handler has a throttle in place to prevent the same exception
 	// from being emailed over and over. This is the number of seconds that must
 	// have passed since the last exception of the same type for the new
