@@ -23,6 +23,13 @@ Input
 =====
 <?php echo $input->renderPlain(); ?>
 <?php endif; ?>
+<?php if ($session): ?>
+
+
+Session
+=======
+<?php echo $session->renderPlain(); ?>
+<?php endif; ?>
 <?php if ($queryLog): ?>
 
 
