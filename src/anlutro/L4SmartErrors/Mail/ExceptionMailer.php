@@ -13,6 +13,7 @@ use Exception;
 use Illuminate\Foundation\Application;
 use anlutro\L4SmartErrors\AppInfoGenerator;
 use anlutro\L4SmartErrors\Presenters\ExceptionPresenter;
+use anlutro\L4SmartErrors\Presenters\SessionPresenter;
 use anlutro\L4SmartErrors\Presenters\InputPresenter;
 use anlutro\L4SmartErrors\Presenters\QueryLogPresenter;
 use Illuminate\Mail\Message;
@@ -21,6 +22,7 @@ class ExceptionMailer
 {
 	protected $app;
 	protected $exception;
+	protected $session;
 	protected $appInfo;
 	protected $input;
 	protected $queryLog;
@@ -28,12 +30,14 @@ class ExceptionMailer
 	public function __construct(
 		Application $app,
 		ExceptionPresenter $exception,
+		SessionPresenter $session,
 		AppInfoGenerator $appInfo,
 		InputPresenter $input = null,
 		QueryLogPresenter $queryLog = null
 	) {
 		$this->app = $app;
 		$this->exception = $exception;
+		$this->session = $session;
 		$this->appInfo = $appInfo;
 		$this->input = $input;
 		$this->queryLog = $queryLog;
@@ -54,6 +58,7 @@ class ExceptionMailer
 		$mailData = array(
 			'info'      => $this->appInfo,
 			'exception' => $this->exception,
+			'session'   => $this->session,
 			'input'     => $this->input,
 			'queryLog'  => $this->queryLog,
 		);
