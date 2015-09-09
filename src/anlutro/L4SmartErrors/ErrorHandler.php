@@ -89,11 +89,12 @@ class ErrorHandler
 			if ($email && $this->shouldSendEmail($exception)) {
 				$appInfoGenerator = $this->makeAppInfoGenerator();
 				$exceptionPresenter = $this->makeExceptionPresenter($exception);
+				$sessionPresenter = $this->makeSessionPresenter();
 				$inputPresenter = $this->makeInputPresenter();
 				$queryLogPresenter = $this->makeQueryLogPresenter();
 
 				$this->app->make('anlutro\L4SmartErrors\Mail\ExceptionMailer',
-					[$this->app, $exceptionPresenter, $appInfoGenerator, $inputPresenter, $queryLogPresenter])
+					[$this->app, $exceptionPresenter, $sessionPresenter, $appInfoGenerator, $inputPresenter, $queryLogPresenter])
 					->send($email);
 			}
 
@@ -282,6 +283,22 @@ class ErrorHandler
 	{
 		return $this->app->make('anlutro\L4SmartErrors\Log\ContextCollector',
 			[$this->app]);
+	}
+
+	/**
+	 * Make a session presenter.
+	 *
+	 * @return \anlutro\L4SmartErrors\Presenters\SessionPresenter|null
+	 */
+	protected function makeSessionPresenter()
+	{
+		$session = $this->app['session']->all();
+
+		if (count($session) < 1) {
+			return null;
+		}
+
+		return $this->app->make('anlutro\L4SmartErrors\Presenters\SessionPresenter', [$session]);
 	}
 
 	/**
