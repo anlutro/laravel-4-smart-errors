@@ -37,6 +37,11 @@ class ExceptionMailerTest extends PHPUnit_Framework_TestCase
 		return $mock;
 	}
 
+	protected function makeSessionPresenter($session)
+	{
+		return new \anlutro\L4SmartErrors\Presenters\SessionPresenter($session);
+	}
+
 	protected function mockAppInfoGenerator()
 	{
 		return m::mock('anlutro\L4SmartErrors\AppInfoGenerator');
@@ -52,26 +57,27 @@ class ExceptionMailerTest extends PHPUnit_Framework_TestCase
 		return new \anlutro\L4SmartErrors\Presenters\QueryLogPresenter($queryLog);
 	}
 
-	protected function makeMailer($app, $exception, $appInfo, $input = null, $queryLog = null)
+	protected function makeMailer($app, $exception, $session, $appInfo, $input = null, $queryLog = null)
 	{
-		return new \anlutro\L4SmartErrors\Mail\ExceptionMailer($app, $exception, $appInfo, $input, $queryLog);
+		return new \anlutro\L4SmartErrors\Mail\ExceptionMailer($app, $exception, $session, $appInfo, $input, $queryLog);
 	}
 
 	protected function makeEverything()
 	{
 		$app = $this->makeApp(['smarterror::email-from' => 'bar@baz.com', 'smarterror::cc-email' => 'cc-me@example.com']);
 		$exception = $this->mockExceptionPresenter(new TestException);
+		$session = $this->makeSessionPresenter(['foo'=>'bar']);
 		$appInfo = $this->mockAppInfoGenerator();
 		$input = $this->makeInputPresenter();
 		$queryLog = $this->makeQueryLogPresenter();
-		$mailer = $this->makeMailer($app, $exception, $appInfo, $input, $queryLog);
-		return [$mailer, $app, $exception, $appInfo, $input, $queryLog];
+		$mailer = $this->makeMailer($app, $exception, $session, $appInfo, $input, $queryLog);
+		return [$mailer, $app, $exception, $session, $appInfo, $input, $queryLog];
 	}
 
 	/** @test */
 	public function everything()
 	{
-		list($mailer, $app, $exception, $appInfo, $input, $queryLog) = $this->makeEverything();
+		list($mailer, $app, $exception, $session, $appInfo, $input, $queryLog) = $this->makeEverything();
 
 		$app['request']->shouldReceive('root')->once()->andReturn('http://localhost');
 		$app['mailer']->shouldReceive('send')->once()
