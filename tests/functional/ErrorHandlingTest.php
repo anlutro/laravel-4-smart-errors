@@ -30,6 +30,8 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->app['config']->set('mail.pretend', false);
 		$this->app['config']->set('mail.from', ['name' => 'FooBar', 'address' => 'foo@bar.com']);
 
+		$this->app['session']->set('foo', 'bar');
+
 		$this->app['router']->get('exception', function() {
 			throw new \LogicException('L4SmartErrors test exception');
 		});
