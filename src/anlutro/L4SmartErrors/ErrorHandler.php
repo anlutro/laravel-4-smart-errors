@@ -13,15 +13,12 @@ use Exception;
 use Illuminate\Foundation\Application;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use anlutro\L4SmartErrors\Traits\SanitizeTrait;
 
 /**
  * The class that handles the errors. Obviously
  */
 class ErrorHandler
 {
-	use SanitizeTrait;
-
 	/**
 	 * @var \Illuminate\Foundation\Application
 	 */
@@ -33,17 +30,11 @@ class ErrorHandler
 	protected $handledExceptions;
 
 	/**
-	 * @var array
-	 */
-	protected $sanitizeFields;
-
-	/**
 	 * @param \Illuminate\Foundation\Application $app
 	 */
 	public function __construct(Application $app)
 	{
 		$this->app = $app;
-		$this->sanitizeFields = $this->app['config']->get('smarterror::session-wipe');
 		$this->handledExceptions = new \SplObjectStorage;
 	}
 
@@ -302,14 +293,13 @@ class ErrorHandler
 	protected function makeSessionPresenter()
 	{
 		$session = $this->app['session']->all();
-
-		$session = $this->sanitize($session, $this->sanitizeFields);
+		$fields = $this->app['config']->get('smarterror::session-wipe');
 
 		if (count($session) < 1) {
 			return null;
 		}
 
-		return $this->app->make('anlutro\L4SmartErrors\Presenters\SessionPresenter', [$session]);
+		return $this->app->make('anlutro\L4SmartErrors\Presenters\SessionPresenter', [$session, $fields]);
 	}
 
 	/**

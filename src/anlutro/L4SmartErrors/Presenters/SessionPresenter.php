@@ -9,13 +9,17 @@
 
 namespace anlutro\L4SmartErrors\Presenters;
 
+use anlutro\L4SmartErrors\Traits\SanitizeTrait;
+
 class SessionPresenter extends AbstractPresenter
 {
+	use SanitizeTrait;
+
 	protected $session;
 
-	public function __construct(array $session)
+	public function __construct(array $session, array $sanitizeFields)
 	{
-		$this->session = $session;
+		$this->session = $this->sanitize($session, $sanitizeFields);
 	}
 
 	public function renderHtml()

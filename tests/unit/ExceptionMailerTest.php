@@ -39,7 +39,7 @@ class ExceptionMailerTest extends PHPUnit_Framework_TestCase
 
 	protected function makeSessionPresenter($session)
 	{
-		return new \anlutro\L4SmartErrors\Presenters\SessionPresenter($session);
+		return new \anlutro\L4SmartErrors\Presenters\SessionPresenter($session, []);
 	}
 
 	protected function mockAppInfoGenerator()
