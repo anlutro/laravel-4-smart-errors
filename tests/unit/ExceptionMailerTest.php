@@ -49,7 +49,7 @@ class ExceptionMailerTest extends PHPUnit_Framework_TestCase
 
 	protected function makeInputPresenter($input = array())
 	{
-		return new \anlutro\L4SmartErrors\Presenters\InputPresenter($input);
+		return new \anlutro\L4SmartErrors\Presenters\InputPresenter($input, ["password"]);
 	}
 
 	protected function makeQueryLogPresenter($queryLog = array())

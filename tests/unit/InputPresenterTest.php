@@ -27,6 +27,6 @@ class InputPresenterTest extends PHPUnit_Framework_TestCase
 
 	public function makePresenter(array $input)
 	{
-		return new anlutro\L4SmartErrors\Presenters\InputPresenter($input);
+		return new anlutro\L4SmartErrors\Presenters\InputPresenter($input, ["password"]);
 	}
 }

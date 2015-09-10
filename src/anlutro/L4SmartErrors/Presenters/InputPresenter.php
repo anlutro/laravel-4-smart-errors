@@ -8,14 +8,17 @@
  */
 
 namespace anlutro\L4SmartErrors\Presenters;
+use anlutro\L4SmartErrors\Traits\SanitizeTrait;
 
 class InputPresenter extends AbstractPresenter
 {
+	use SanitizeTrait;
+
 	protected $input;
 
-	public function __construct(array $input)
+	public function __construct(array $input, array $fields)
 	{
-		$this->input = $input;
+		$this->input = $this->sanitize($input, $fields);
 	}
 
 	public function renderHtml()

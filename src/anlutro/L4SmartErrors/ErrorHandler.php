@@ -316,7 +316,7 @@ class ErrorHandler
 		}
 
 		return $this->app->make('anlutro\L4SmartErrors\Presenters\InputPresenter',
-			[$input]);
+			[$input, ["password"]]);
 	}
 
 	/**
