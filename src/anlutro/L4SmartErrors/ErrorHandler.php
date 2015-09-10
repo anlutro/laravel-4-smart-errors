@@ -13,12 +13,15 @@ use Exception;
 use Illuminate\Foundation\Application;
 use Illuminate\Session\TokenMismatchException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use anlutro\L4SmartErrors\Traits\SanitizeTrait;
 
 /**
  * The class that handles the errors. Obviously
  */
 class ErrorHandler
 {
+	use SanitizeTrait;
+
 	/**
 	 * @var \Illuminate\Foundation\Application
 	 */
@@ -292,27 +295,6 @@ class ErrorHandler
 	}
 
 	/**
-	 * Sanitize an array.
-	 *
-	 * @return array
-	 */
-	protected function sanitize(array $input)
-	{
-		foreach ($input as $key => &$value) {
-			if (is_array($value)) {
-				$value = $this->sanitize($value);
-			}
-			foreach ($this->sanitizeFields as $field) {
-				if (strpos(strtolower($key), $field) !== false) {
-					$value = 'HIDDEN';
-				}
-			}
-		}
-
-		return $input;
-	}
-
-	/**
 	 * Make a session presenter.
 	 *
 	 * @return \anlutro\L4SmartErrors\Presenters\SessionPresenter|null
@@ -321,7 +303,7 @@ class ErrorHandler
 	{
 		$session = $this->app['session']->all();
 
-		$session = $this->sanitize($session);
+		$session = $this->sanitize($session, $this->sanitizeFields);
 
 		if (count($session) < 1) {
 			return null;
