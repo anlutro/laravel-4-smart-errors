@@ -30,11 +30,17 @@ class ErrorHandler
 	protected $handledExceptions;
 
 	/**
+	 * @var array
+	 */
+	protected $sanitizeFields;
+
+	/**
 	 * @param \Illuminate\Foundation\Application $app
 	 */
 	public function __construct(Application $app)
 	{
 		$this->app = $app;
+		$this->sanitizeFields = $this->app['config']->get('smarterror::session-wipe');
 		$this->handledExceptions = new \SplObjectStorage;
 	}
 
@@ -286,6 +292,27 @@ class ErrorHandler
 	}
 
 	/**
+	 * Sanitize an array.
+	 *
+	 * @return array
+	 */
+	protected function sanitize(array $input)
+	{
+		foreach ($input as $key => &$value) {
+			if (is_array($value)) {
+				$value = $this->sanitize($value);
+			}
+			foreach ($this->sanitizeFields as $field) {
+				if (strpos(strtolower($key), $field) !== false) {
+					$value = 'HIDDEN';
+				}
+			}
+		}
+
+		return $input;
+	}
+
+	/**
 	 * Make a session presenter.
 	 *
 	 * @return \anlutro\L4SmartErrors\Presenters\SessionPresenter|null
@@ -294,9 +321,7 @@ class ErrorHandler
 	{
 		$session = $this->app['session']->all();
 
-		foreach ($this->app['config']->get('session-wipe') as $key) {
-			unset($session[$key]);
-		}
+		$session = $this->sanitize($session);
 
 		if (count($session) < 1) {
 			return null;
