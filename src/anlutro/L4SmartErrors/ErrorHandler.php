@@ -294,6 +294,10 @@ class ErrorHandler
 	{
 		$session = $this->app['session']->all();
 
+		foreach ($this->app['config']->get('session-wipe') as $key) {
+			unset($session[$key]);
+		}
+
 		if (count($session) < 1) {
 			return null;
 		}
