@@ -24,5 +24,3 @@ script:
   - phpunit --verbose
 
 sudo: false
-
-sudo: false
