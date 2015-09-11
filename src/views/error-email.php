@@ -24,6 +24,12 @@
 </p>
 <?php endif; ?>
 
+<?php if ($session): ?>
+	<hr>
+	<p><b>Session</b></p>
+	<p><?php echo $session->renderHtml(); ?></p>
+<?php endif; ?>
+
 <?php if ($queryLog): ?>
 <hr>
 <p>

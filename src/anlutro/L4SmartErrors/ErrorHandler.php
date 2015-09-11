@@ -89,11 +89,12 @@ class ErrorHandler
 			if ($email && $this->shouldSendEmail($exception)) {
 				$appInfoGenerator = $this->makeAppInfoGenerator();
 				$exceptionPresenter = $this->makeExceptionPresenter($exception);
+				$sessionPresenter = $this->makeSessionPresenter();
 				$inputPresenter = $this->makeInputPresenter();
 				$queryLogPresenter = $this->makeQueryLogPresenter();
 
 				$this->app->make('anlutro\L4SmartErrors\Mail\ExceptionMailer',
-					[$this->app, $exceptionPresenter, $appInfoGenerator, $inputPresenter, $queryLogPresenter])
+					[$this->app, $exceptionPresenter, $sessionPresenter, $appInfoGenerator, $inputPresenter, $queryLogPresenter])
 					->send($email);
 			}
 
@@ -285,6 +286,23 @@ class ErrorHandler
 	}
 
 	/**
+	 * Make a session presenter.
+	 *
+	 * @return \anlutro\L4SmartErrors\Presenters\SessionPresenter|null
+	 */
+	protected function makeSessionPresenter()
+	{
+		$session = $this->app['session']->all();
+		$fields = $this->app['config']->get('smarterror::session-wipe');
+
+		if (count($session) < 1) {
+			return null;
+		}
+
+		return $this->app->make('anlutro\L4SmartErrors\Presenters\SessionPresenter', [$session, $fields]);
+	}
+
+	/**
 	 * Make an input presenter. Returns null if no input is available.
 	 *
 	 * @return \anlutro\L4SmartErrors\Presenters\InputPresenter|null
@@ -298,7 +316,7 @@ class ErrorHandler
 		}
 
 		return $this->app->make('anlutro\L4SmartErrors\Presenters\InputPresenter',
-			[$input]);
+			[$input, ["password"]]);
 	}
 
 	/**

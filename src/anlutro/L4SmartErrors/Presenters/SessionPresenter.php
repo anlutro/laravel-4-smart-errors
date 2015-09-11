@@ -8,31 +8,32 @@
  */
 
 namespace anlutro\L4SmartErrors\Presenters;
+
 use anlutro\L4SmartErrors\Traits\SanitizeTrait;
 
-class InputPresenter extends AbstractPresenter
+class SessionPresenter extends AbstractPresenter
 {
 	use SanitizeTrait;
 
-	protected $input;
+	protected $session;
 
-	public function __construct(array $input, array $fields)
+	public function __construct(array $session, array $sanitizeFields)
 	{
-		$this->input = $this->sanitize($input, $fields);
+		$this->session = $this->sanitize($session, $sanitizeFields);
 	}
 
 	public function renderHtml()
 	{
-		return $this->renderVarDump($this->input, true);
+		return $this->renderVarDump($this->session, true);
 	}
 
 	public function renderPlain()
 	{
-		return $this->renderVarDump($this->input, false);
+		return $this->renderVarDump($this->session, false);
 	}
 
 	public function renderCompact()
 	{
-		return json_encode($this->input);
+		return json_encode($this->session);
 	}
 }
