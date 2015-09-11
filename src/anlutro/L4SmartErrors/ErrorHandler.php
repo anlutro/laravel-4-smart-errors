@@ -94,7 +94,7 @@ class ErrorHandler
 				$queryLogPresenter = $this->makeQueryLogPresenter();
 
 				$this->app->make('anlutro\L4SmartErrors\Mail\ExceptionMailer',
-					[$this->app, $exceptionPresenter, $sessionPresenter, $appInfoGenerator, $inputPresenter, $queryLogPresenter])
+					[$this->app, $exceptionPresenter, $appInfoGenerator, $sessionPresenter, $inputPresenter, $queryLogPresenter])
 					->send($email);
 			}
 
@@ -282,7 +282,7 @@ class ErrorHandler
 	protected function makeContextCollector()
 	{
 		return $this->app->make('anlutro\L4SmartErrors\Log\ContextCollector',
-			[$this->app]);
+			[$this->app, $this->makeInputPresenter(), $this->makeSessionPresenter()]);
 	}
 
 	/**
@@ -292,14 +292,17 @@ class ErrorHandler
 	 */
 	protected function makeSessionPresenter()
 	{
-		$session = $this->app['session']->all();
-		$fields = $this->app['config']->get('smarterror::session-wipe');
+		$session = $this->app['session'];
+		$sessionData = $session->all();
 
-		if (count($session) < 1) {
+		if (count($sessionData) < 1) {
 			return null;
 		}
 
-		return $this->app->make('anlutro\L4SmartErrors\Presenters\SessionPresenter', [$session, $fields]);
+		$fields = $this->app['config']->get('smarterror::session-wipe', []);
+
+		return $this->app->make('anlutro\L4SmartErrors\Presenters\SessionPresenter',
+			[$session->getId(), $sessionData, $fields]);
 	}
 
 	/**
@@ -315,8 +318,10 @@ class ErrorHandler
 			return null;
 		}
 
+		$fields = $this->app['config']->get('smarterror::input-wipe', ['password']);
+
 		return $this->app->make('anlutro\L4SmartErrors\Presenters\InputPresenter',
-			[$input, ["password"]]);
+			[$input, $fields]);
 	}
 
 	/**

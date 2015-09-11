@@ -30,8 +30,8 @@ class ExceptionMailer
 	public function __construct(
 		Application $app,
 		ExceptionPresenter $exception,
-		SessionPresenter $session,
 		AppInfoGenerator $appInfo,
+		SessionPresenter $session = null,
 		InputPresenter $input = null,
 		QueryLogPresenter $queryLog = null
 	) {
@@ -70,11 +70,11 @@ class ExceptionMailer
 
 		$exceptionName = $this->getExceptionBaseName($this->exception->getException());
 		$rootUrl = $this->app['request']->root() ?: $config->get('app.url');
-		$config = [
+		$config = array(
 			'subject' => "[$env] $exceptionName - $rootUrl",
 			'from' => $config->get('smarterror::email-from'),
 			'cc' => $config->get('smarterror::cc-email'),
-		];
+		);
 
 		$callback = function(Message $msg) use($email, $config) {
 			$msg->to($email);

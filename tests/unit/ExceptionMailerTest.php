@@ -37,9 +37,9 @@ class ExceptionMailerTest extends PHPUnit_Framework_TestCase
 		return $mock;
 	}
 
-	protected function makeSessionPresenter($session)
+	protected function makeSessionPresenter($id, $data, $hidden = array())
 	{
-		return new \anlutro\L4SmartErrors\Presenters\SessionPresenter($session, []);
+		return new \anlutro\L4SmartErrors\Presenters\SessionPresenter($id, $data, $hidden);
 	}
 
 	protected function mockAppInfoGenerator()
@@ -66,11 +66,11 @@ class ExceptionMailerTest extends PHPUnit_Framework_TestCase
 	{
 		$app = $this->makeApp(['smarterror::email-from' => 'bar@baz.com', 'smarterror::cc-email' => 'cc-me@example.com']);
 		$exception = $this->mockExceptionPresenter(new TestException);
-		$session = $this->makeSessionPresenter(['foo'=>'bar']);
+		$session = $this->makeSessionPresenter('123', ['foo' => 'bar']);
 		$appInfo = $this->mockAppInfoGenerator();
 		$input = $this->makeInputPresenter();
 		$queryLog = $this->makeQueryLogPresenter();
-		$mailer = $this->makeMailer($app, $exception, $session, $appInfo, $input, $queryLog);
+		$mailer = $this->makeMailer($app, $exception, $appInfo, $session, $input, $queryLog);
 		return [$mailer, $app, $exception, $session, $appInfo, $input, $queryLog];
 	}
 

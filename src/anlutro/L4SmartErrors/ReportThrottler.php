@@ -69,10 +69,10 @@ class ReportThrottler
 
 		// if the file is writeable, write the current exception hash into it.
 		if ($this->pathIsWriteable($path)) {
-			$data = ['previous' => [
+			$data = array('previous' => array(
 				'hash' => $hash,
 				'time' => Carbon::now()->timestamp,
-			]];
+			));
 			$this->files->put($path, json_encode($data));
 		}
 

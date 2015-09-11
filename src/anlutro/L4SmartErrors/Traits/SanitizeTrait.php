@@ -33,5 +33,3 @@ trait SanitizeTrait
 		return $data;
 	}
 }
-
-?>

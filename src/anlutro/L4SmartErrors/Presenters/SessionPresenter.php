@@ -15,11 +15,23 @@ class SessionPresenter extends AbstractPresenter
 {
 	use SanitizeTrait;
 
+	protected $id;
 	protected $session;
 
-	public function __construct(array $session, array $sanitizeFields)
+	public function __construct($id, array $session, array $sanitizeFields)
 	{
+		$this->id = $id;
 		$this->session = $this->sanitize($session, $sanitizeFields);
+	}
+
+	public function getId()
+	{
+		return $this->id;
+	}
+
+	public function getData()
+	{
+		return $this->session;
 	}
 
 	public function renderHtml()

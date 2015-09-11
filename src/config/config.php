@@ -53,8 +53,11 @@ return array(
 	// Path to JSON file where metadata is stored.
 	'storage-path' => storage_path('meta/l4-smart-errors.json'),
 
-	// Sensitive keys that should be cleared from the session
+	// Session data array keys that should be sanitized from emails/logs.
 	'session-wipe' => [],
+
+	// Input array keys that should be sanitized from emails/logs.
+	'input-wipe' => ['password'],
 
 	// The error handler has a throttle in place to prevent the same exception
 	// from being emailed over and over. This is the number of seconds that must

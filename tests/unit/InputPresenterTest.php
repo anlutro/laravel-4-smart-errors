@@ -25,6 +25,20 @@ class InputPresenterTest extends PHPUnit_Framework_TestCase
 		$this->assertContains('<pre', $str);
 	}
 
+	public function testPasswordsAreSanitized()
+	{
+		$presenter = $this->makePresenter(array('password' => 'foo', 'password_confirmation' => 'foo'));
+		$str = $presenter->renderPlain();
+		$this->assertNotContains('foo', $str);
+		$this->assertContains('HIDDEN', $str);
+		$str = $presenter->renderHtml();
+		$this->assertNotContains('foo', $str);
+		$this->assertContains('HIDDEN', $str);
+		$str = $presenter->renderCompact();
+		$this->assertNotContains('foo', $str);
+		$this->assertContains('HIDDEN', $str);
+	}
+
 	public function makePresenter(array $input)
 	{
 		return new anlutro\L4SmartErrors\Presenters\InputPresenter($input, ["password"]);

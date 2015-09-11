@@ -11,18 +11,28 @@ namespace anlutro\L4SmartErrors\Log;
 
 use Illuminate\Foundation\Application;
 use anlutro\L4SmartErrors\Traits\ConsoleCheckingTrait;
+use anlutro\L4SmartErrors\Presenters\InputPresenter;
+use anlutro\L4SmartErrors\Presenters\SessionPresenter;
 
 class ContextCollector
 {
 	use ConsoleCheckingTrait;
 
 	protected $app;
+	protected $input;
+	protected $session;
 	protected $console;
-	protected $sanitizeFields = ['password'];
+	protected $sanitizeFields = array('password');
 
-	public function __construct(Application $app, $console = null)
-	{
+	public function __construct(
+		Application $app,
+		InputPresenter $input = null,
+		SessionPresenter $session = null,
+		$console = null
+	) {
 		$this->app = $app;
+		$this->input = $input;
+		$this->session = $session;
 		$this->console = $console === null ? $this->isConsole() : (bool) $console;
 	}
 
@@ -38,20 +48,25 @@ class ContextCollector
 
 	public function getContext()
 	{
-		$context = [
+		$context = array(
 			'context'     => $this->console ? 'console' : 'web',
 			'environment' => $this->app->environment(),
 			'hostname'    => gethostname(),
-		];
+		);
 
 		if (!$this->console && $request = $this->app['request']) {
 			$context['url']         = $request->fullUrl();
 			$context['http_method'] = $request->getMethod();
-			$context['input']       = $this->sanitizeInput($request->input());
 			$context['referer']     = $request->header('referer') ?: 'None';
 			$context['client_ip']   = $request->getClientIp();
 			$context['user_agent']  = $request->header('User-Agent');
-			$context['session_id']  = $this->app['session']->getId();
+			if ($this->input) {
+				$context['input'] = $this->input->getData();
+			}
+			if ($this->session) {
+				$context['session_id'] = $this->session->getId();
+				$context['session']    = $this->session->getData();
+			}
 
 			list($routeAction, $routeName) = $this->findRouteNames();
 			if ($routeName)   $context['route_name'] = $routeName;
@@ -59,22 +74,6 @@ class ContextCollector
 		}
 
 		return $context;
-	}
-
-	protected function sanitizeInput(array $input)
-	{
-		foreach ($input as $key => &$value) {
-			if (is_array($value)) {
-				$value = $this->sanitizeInput($value);
-			}
-			foreach ($this->sanitizeFields as $field) {
-				if (strpos(strtolower($key), $field) !== false) {
-					$value = 'HIDDEN';
-				}
-			}
-		}
-
-		return $input;
 	}
 
 	/**

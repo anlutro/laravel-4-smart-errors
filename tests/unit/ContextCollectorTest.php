@@ -1,26 +1,24 @@
 <?php
 
-use Mockery as m;
+use anlutro\L4SmartErrors\Log\ContextCollector;
+use anlutro\L4SmartErrors\Presenters\InputPresenter;
 
 class ContextCollectorTest extends PHPUnit_Framework_TestCase
 {
 	/** @test */
 	public function input_is_sanitized()
 	{
-		$input = ['foo' => 'bar', 'password' => 'baz'];
-		$context = $this->getContext(['input' => $input]);
+		$app = $this->getApp();
+		$input = new InputPresenter(['password' => 'foo'], ['password']);
+		$context = (new ContextCollector($app, $input, null, false))
+			->getContext();
 		$this->assertEquals('HIDDEN', $context['input']['password']);
 	}
 
-	public function getContext(array $data)
+	public function getApp(array $input = array(), array $session = array())
 	{
 		$app = new \Illuminate\Foundation\Application();
 		$app['env'] = 'testing';
-		$app['session'] = m::mock('Illuminate\Session\Store');
-		$app['session']->shouldReceive('getId')->andReturn('session_id');
-		$app['request'] = new \Illuminate\Http\Request([], $data['input']);
-		$app['request']->setMethod('POST');
-		return (new anlutro\L4SmartErrors\Log\ContextCollector($app, false))
-			->getContext();
+		return $app;
 	}
 }

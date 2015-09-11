@@ -99,7 +99,7 @@ class AppInfoGenerator
 
 	protected function getExtraStrings()
 	{
-		return [];
+		return array();
 	}
 
 	public function renderPlain()

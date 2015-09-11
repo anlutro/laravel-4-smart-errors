@@ -30,10 +30,6 @@ class ErrorHandlingTest extends PkgAppTestCase
 		$this->app['config']->set('mail.pretend', false);
 		$this->app['config']->set('mail.from', ['name' => 'FooBar', 'address' => 'foo@bar.com']);
 
-		$this->app['session']->set('foo', 'bar');
-		$this->app['session']->set('password', 'SuperSecret');
-		$this->app['session']->set('nested.foo.password', 'OtherSecretStuff');
-
 		$this->app['router']->get('exception', function() {
 			throw new \LogicException('L4SmartErrors test exception');
 		});
@@ -319,10 +315,30 @@ class ErrorHandlingTest extends PkgAppTestCase
 	/** @test */
 	public function sessionIsSanitized()
 	{
+		$this->app['session']->set('foo', 'bar');
+		$this->app['session']->set('password', 'SuperSecret');
+		$this->app['session']->set('nested.foo.password', 'OtherSecretStuff');
 		$this->app['config']->set('smarterror::session-wipe', ['password']);
-		$this->expectMailBodiesContain(["'password' =>\n  string(6) \"HIDDEN\"",
-		                                "'password' =>\n      string(6) \"HIDDEN\""]);
+
+		$this->expectMailBodiesContain([
+			"'foo' =>\n  string(3) \"bar\"",
+			"'password' =>\n  string(6) \"HIDDEN\"",
+			"'password' =>\n      string(6) \"HIDDEN\"",
+		]);
 		$this->call('get', '/exception');
+	}
+
+	/** @test */
+	public function inputIsSanitized()
+	{
+		$this->app['config']->set('smarterror::input-wipe', ['password']);
+
+		$this->expectMailBodiesContain([
+			"'foo' =>\n  string(3) \"bar\"",
+			"'password_confirmation' =>\n  string(6) \"HIDDEN\"",
+		    "'password' =>\n  string(6) \"HIDDEN\"",
+		]);
+		$this->call('get', '/exception', ['foo' => 'bar', 'password' => 'foo', 'password_confirmation' => 'foo']);
 	}
 }
 
