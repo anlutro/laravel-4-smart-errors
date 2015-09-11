@@ -20,8 +20,6 @@ NOTE: Laravel 5 is not supported. See [this issue](https://github.com/anlutro/la
 
 To install, run `composer require anlutro/l4-smart-errors`. This will pick the most appropriate version and add it to your `composer.json`.
 
-NOTE: The package tries to maintain PHP 5.3 compatibility but due to incompatibilities with require-dev packages, PHP 5.3 not tested on travis. If you find a PHP 5.3-related problem with the library, please open an issue.
-
 
 ### IMPORTANT: Upgrading from 2.1
 
