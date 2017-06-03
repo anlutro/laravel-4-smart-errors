@@ -24,7 +24,7 @@ class ExceptionLoggerTest extends PHPUnit_Framework_TestCase
 		$context->shouldReceive('getContext')->once()
 			->andReturn(['foo' => 'bar']);
 		$log->shouldReceive('error')->once()->andReturnUsing(function($str, $context) {
-			$this->assertContains('Uncaught exception \'Exception\'', $str);
+			$this->assertRegexp("/Uncaught (exception 'Exception'|Exception)/", $str);
 			$this->assertContains(__FILE__, $str);
 			$this->assertContains(__CLASS__, $str);
 			$this->assertEquals('bar', $context['foo']);
