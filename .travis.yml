@@ -5,11 +5,7 @@ php:
   - 5.5
   - 5.6
   - 7.0
-  - hhvm
-
-matrix:
-  allow_failures:
-    - php: 7.0
+  - 7.1
 
 env:
   - FRAMEWORK_VERSION="4.1.*" SKELETON_VERSION="4.1.*"
