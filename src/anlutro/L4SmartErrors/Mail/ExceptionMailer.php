@@ -9,7 +9,6 @@
 
 namespace anlutro\L4SmartErrors\Mail;
 
-use Exception;
 use Illuminate\Foundation\Application;
 use anlutro\L4SmartErrors\AppInfoGenerator;
 use anlutro\L4SmartErrors\Presenters\ExceptionPresenter;
@@ -92,7 +91,7 @@ class ExceptionMailer
 		$this->app['mailer']->send(array($htmlView, $plainView), $mailData, $callback);
 	}
 
-	protected function getExceptionBaseName(Exception $exception)
+	protected function getExceptionBaseName($exception)
 	{
 		$exceptionName = get_class($exception);
 

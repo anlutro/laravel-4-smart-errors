@@ -51,7 +51,7 @@ class L4SmartErrorsServiceProvider extends ServiceProvider
 	protected function registerErrorHandler()
 	{
 		$app = $this->app;
-		$this->app->error(function(\Exception $exception, $code) use ($app) {
+		$this->app->error(function($exception, $code) use ($app) {
 			return $app['smarterror']->handleException($exception, $code);
 		});
 	}

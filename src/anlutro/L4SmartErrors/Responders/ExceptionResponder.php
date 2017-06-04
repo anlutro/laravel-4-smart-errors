@@ -9,14 +9,13 @@
 
 namespace anlutro\L4SmartErrors\Responders;
 
-use Exception;
 use Illuminate\Support\Facades\Response;
 use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class ExceptionResponder extends AbstractResponder
 {
-	public function respond(Exception $exception)
+	public function respond($exception)
 	{
 		// the default laravel console error handler really sucks - override it
 		if ($this->isConsole()) {

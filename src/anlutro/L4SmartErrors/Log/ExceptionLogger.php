@@ -9,7 +9,6 @@
 
 namespace anlutro\L4SmartErrors\Log;
 
-use Exception;
 use Psr\Log\LoggerInterface;
 
 class ExceptionLogger
@@ -25,7 +24,7 @@ class ExceptionLogger
 		$this->contextCollector = $contextCollector;
 	}
 
-	public function log(Exception $exception)
+	public function log($exception)
 	{
 		$logstr = "Uncaught $exception";
 

@@ -9,7 +9,6 @@
 
 namespace anlutro\L4SmartErrors\Presenters;
 
-use Exception;
 use Xethron\L4ToString;
 
 class ExceptionPresenter
@@ -18,7 +17,7 @@ class ExceptionPresenter
 	protected $exception;
 	protected $descriptive = false;
 
-	public function __construct(Exception $exception)
+	public function __construct($exception)
 	{
 		$this->exception = $exception;
 

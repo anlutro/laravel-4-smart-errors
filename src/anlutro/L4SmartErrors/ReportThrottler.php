@@ -9,7 +9,6 @@
 
 namespace anlutro\L4SmartErrors;
 
-use Exception;
 use Carbon\Carbon;
 use Illuminate\Config\Repository;
 use Illuminate\Filesystem\Filesystem;
@@ -38,7 +37,7 @@ class ReportThrottler
 	 *
 	 * @return boolean
 	 */
-	public function shouldReport(Exception $exception)
+	public function shouldReport($exception)
 	{
 		// if app.debug is true, reporting is unnecessary
 		if ($this->config->get('app.debug') === true) {
